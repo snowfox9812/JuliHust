@@ -1,11 +1,17 @@
-import React from "react";
-import { TouchableWithoutFeedback, ScrollView, StyleSheet, Image } from "react-native";
+import React, { useState, useEffect, useContext } from "react";
+import {
+  TouchableWithoutFeedback,
+  ScrollView,
+  StyleSheet,
+  Image,
+  TouchableOpacity,
+} from "react-native";
 import { Block, Text, theme } from "galio-framework";
 import { useSafeArea } from "react-native-safe-area-context";
-
-import { Icon, Drawer as DrawerCustomItem } from '../components/';
-import { Images, materialTheme } from "../constants/";
-
+import { Drawer as DrawerCustomItem } from "../components/";
+import { materialTheme } from "../constants/";
+import UserContext from "../controller/context";
+import { firebase } from "../src/firebase/config";
 
 function CustomDrawerContent({
   drawerPosition,
@@ -13,19 +19,28 @@ function CustomDrawerContent({
   profile,
   focused,
   state,
+  props,
   ...rest
 }) {
   const insets = useSafeArea();
-  const screens = [
-    "Home",
-    "Woman",
-    "Man",
-    "Kids",
-    "New Collection",
-    "Profile",
-    "Settings",
-    "Components"
-  ];
+  const screens = ["Home", "Profile", "Settings"];
+  const user = useContext(UserContext);
+  const [imageUrl, setImageUrl] = useState("");
+
+  async function getAvatarUrl(filename) {
+    const ref = await firebase
+      .storage()
+      .ref("images/" + filename)
+      .getDownloadURL()
+      .then((result) => {
+        setImageUrl(result);
+      });
+  }
+
+  useEffect(() => {
+    getAvatarUrl(user.avatarFileName);
+  }, []);
+
   return (
     <Block
       style={styles.container}
@@ -36,24 +51,15 @@ function CustomDrawerContent({
           onPress={() => navigation.navigate("Profile")}
         >
           <Block style={styles.profile}>
-            <Image source={{ uri: profile.avatar }} style={styles.avatar} />
+            <Image source={{ uri: imageUrl }} style={styles.avatar} />
             <Text h5 color={"white"}>
               {profile.name}
             </Text>
           </Block>
         </TouchableWithoutFeedback>
         <Block row>
-          <Block middle style={styles.pro}>
-            <Text size={16} color="white">
-              {profile.plan}
-            </Text>
-          </Block>
           <Text size={16} muted style={styles.seller}>
             {profile.type}
-          </Text>
-          <Text size={16} color={materialTheme.COLORS.WARNING}>
-            {profile.rating}{" "}
-            <Icon name="shape-star" family="GalioExtra" size={14} />
           </Text>
         </Block>
       </Block>
@@ -63,8 +69,8 @@ function CustomDrawerContent({
             {
               paddingTop: insets.top * 0.4,
               paddingLeft: drawerPosition === "left" ? insets.left : 0,
-              paddingRight: drawerPosition === "right" ? insets.right : 0
-            }
+              paddingRight: drawerPosition === "right" ? insets.right : 0,
+            },
           ]}
           showsVerticalScrollIndicator={false}
         >
@@ -82,35 +88,29 @@ function CustomDrawerContent({
       </Block>
       <Block flex={0.3} style={{ paddingLeft: 7, paddingRight: 14 }}>
         <DrawerCustomItem
-          title="Sign In"
+          title="Logout"
           navigation={navigation}
-          focused={state.index === 8 ? true : false}
-        />
-        <DrawerCustomItem
-          title="Sign Up"
-          navigation={navigation}
-          focused={state.index === 9 ? true : false}
+          focused={state.index === 3 ? true : false}
         />
       </Block>
     </Block>
   );
 }
 
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
   header: {
-    backgroundColor: '#4B1958',
+    backgroundColor: "#4B1958",
     paddingHorizontal: 28,
     paddingBottom: theme.SIZES.BASE,
     paddingTop: theme.SIZES.BASE * 2,
-    justifyContent: 'center',
+    justifyContent: "center",
   },
   footer: {
     paddingHorizontal: 28,
-    justifyContent: 'flex-end'
+    justifyContent: "flex-end",
   },
   profile: {
     marginBottom: theme.SIZES.BASE / 2,
@@ -131,7 +131,7 @@ const styles = StyleSheet.create({
   },
   seller: {
     marginRight: 16,
-  }
+  },
 });
 
 export default CustomDrawerContent;

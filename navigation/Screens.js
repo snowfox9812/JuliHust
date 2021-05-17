@@ -1,33 +1,48 @@
-import React from 'react';
-import { Easing, Animated, Dimensions } from 'react-native';
+import React, { useContext } from "react";
+import { Dimensions } from "react-native";
 import { createStackNavigator } from "@react-navigation/stack";
 import { createDrawerNavigator } from "@react-navigation/drawer";
+import { Block, Text} from "galio-framework";
+import HomeScreen from "../screens/Home";
+import ProfileScreen from "../screens/Profile";
+import SettingsScreen from "../screens/Settings";
+import Login from "../screens/Login";
+import Logout from "../screens/Logout";
+import Registration from "../screens/Registration";
+import Record from "../components/AudioRecord";
+import ChangePasswordScreen from "../screens/ChangePassword";
+import AboutScreen from "../screens/About";
+import UpdateProfile from "../screens/UpdateProfile";
+import ResultDetail from "../screens/ResultDetail";
 
-import { Block, Text, theme } from "galio-framework";
-
-import ComponentsScreen from '../screens/Components';
-import HomeScreen from '../screens/Home';
-import OnboardingScreen from '../screens/Onboarding';
-import ProfileScreen from '../screens/Profile';
-import ProScreen from '../screens/Pro';
-import SettingsScreen from '../screens/Settings';
-
-import CustomDrawerContent from './Menu';
-import { Icon, Header } from '../components';
+import CustomDrawerContent from "./Menu";
+import { Icon, Header } from "../components";
 import { Images, materialTheme } from "../constants/";
 
-const { width } = Dimensions.get("screen");
+import UserContext from "../controller/context";
+import AuthContext from "../controller/authContext";
+import * as SecureStore from "expo-secure-store";
+import { firebase } from "../src/firebase/config";
 
+const { width } = Dimensions.get("screen");
 const Stack = createStackNavigator();
 const Drawer = createDrawerNavigator();
 
-const profile = {
+var profile = {
   avatar: Images.Profile,
   name: "Rachel Brown",
-  type: "Seller",
+  type: "Beginner",
   plan: "Pro",
-  rating: 4.8
+  rating: 4.8,
 };
+
+function SplashScreen() {
+  return (
+    <Block>
+      <Text>Loading...</Text>
+    </Block>
+  );
+}
 
 function ProfileStack(props) {
   return (
@@ -45,7 +60,40 @@ function ProfileStack(props) {
               navigation={navigation}
             />
           ),
-          headerTransparent: true
+          headerTransparent: true,
+        }}
+      />
+      <Stack.Screen
+        name="ResultDetail"
+        component={ResultDetail}
+        options={{
+          header: ({ navigation, scene }) => (
+            <Header
+              back
+              white
+              transparent
+              title="Result Detail"
+              scene={scene}
+              navigation={navigation}
+            />
+          ),
+          headerTransparent: true,
+        }}
+      />
+      <Stack.Screen
+        name="UpdateProfile"
+        component={UpdateProfile}
+        options={{
+          header: ({ navigation, scene }) => (
+            <Header
+              back
+              transparent
+              title="Update Profile"
+              scene={scene}
+              navigation={navigation}
+            />
+          ),
+          headerTransparent: true,
         }}
       />
     </Stack.Navigator>
@@ -65,23 +113,30 @@ function SettingsStack(props) {
         options={{
           header: ({ navigation, scene }) => (
             <Header title="Settings" scene={scene} navigation={navigation} />
-          )
+          ),
         }}
       />
-    </Stack.Navigator>
-  );
-}
-
-function ComponentsStack(props) {
-  return (
-    <Stack.Navigator mode="card" headerMode="screen">
       <Stack.Screen
-        name="Components"
-        component={ComponentsScreen}
+        name="ChangePassword"
+        component={ChangePasswordScreen}
         options={{
           header: ({ navigation, scene }) => (
-            <Header title="Components" scene={scene} navigation={navigation} />
-          )
+            <Header
+              back
+              title="Reset password"
+              scene={scene}
+              navigation={navigation}
+            />
+          ),
+        }}
+      />
+      <Stack.Screen
+        name="About"
+        component={AboutScreen}
+        options={{
+          header: ({ navigation, scene }) => (
+            <Header back title="About" scene={scene} navigation={navigation} />
+          ),
         }}
       />
     </Stack.Navigator>
@@ -91,29 +146,59 @@ function ComponentsStack(props) {
 function HomeStack(props) {
   return (
     <Stack.Navigator mode="card" headerMode="screen">
-      <Stack.Screen 
+      <Stack.Screen
         name="Home"
         component={HomeScreen}
         options={{
           header: ({ navigation, scene }) => (
-            <Header 
+            <Header
               search
               tabs
               title="Home"
               navigation={navigation}
               scene={scene}
             />
-          )
+          ),
         }}
       />
-      <Stack.Screen 
-        name="Pro"
-        component={ProScreen}
+      <Stack.Screen
+        name="Record"
+        component={Record}
         options={{
           header: ({ navigation, scene }) => (
-            <Header back white transparent title="" navigation={navigation} scene={scene} />
+            <Header
+              back
+              search
+              tabs
+              title="Record"
+              navigation={navigation}
+              scene={scene}
+            />
           ),
-          headerTransparent: true
+        }}
+      />
+    </Stack.Navigator>
+  );
+}
+
+function LogOutStack() {
+  return (
+    <Stack.Navigator initialRouteName="Logout" mode="card" headerMode="screen">
+      <Stack.Screen
+        name="Logout"
+        component={Logout}
+        options={{
+          header: ({ navigation, scene }) => (
+            <Header
+              search
+              tabs
+              transparent
+              title="Logout"
+              scene={scene}
+              navigation={navigation}
+            />
+          ),
+          headerTransparent: false,
         }}
       />
     </Stack.Navigator>
@@ -121,359 +206,236 @@ function HomeStack(props) {
 }
 
 function AppStack(props) {
+  profile.name = props.userInfo.fullName;
   return (
-    <Drawer.Navigator
-      style={{ flex: 1 }}
-      drawerContent={props => (
-        <CustomDrawerContent {...props} profile={profile} />
-      )}
-      drawerStyle={{
-        backgroundColor: "white",
-        width: width * 0.8
-      }}
-      drawerContentOptions={{
-        activeTintColor: "white",
-        inactiveTintColor: "#000",
-        activeBackgroundColor: materialTheme.COLORS.ACTIVE,
-        inactiveBackgroundColor: "transparent",
-        itemStyle: {
-          width: width * 0.74,
-          paddingHorizontal: 12,
-          // paddingVertical: 4,
-          justifyContent: "center",
-          alignContent: "center",
-          // alignItems: 'center',
-          overflow: "hidden"
-        },
-        labelStyle: {
-          fontSize: 18,
-          fontWeight: "normal"
-        }
-      }}
-      initialRouteName="Home"
-    >
-      <Drawer.Screen
-        name="Home"
-        component={HomeStack}
-        options={{
-          drawerIcon: ({ focused }) => (
-            <Icon
-              size={16}
-              name="shop"
-              family="GalioExtra"
-              color={focused ? "white" : materialTheme.COLORS.MUTED}
-            />
-          )
+    <UserContext.Provider value={props.userInfo}>
+      <Drawer.Navigator
+        style={{ flex: 1 }}
+        drawerContent={(props) => (
+          <CustomDrawerContent {...props} profile={profile} />
+        )}
+        drawerStyle={{
+          backgroundColor: "white",
+          width: width * 0.8,
         }}
-      />
-      <Drawer.Screen
-        name="Woman"
-        component={ProScreen}
-        options={{
-          drawerIcon: ({ focused }) => (
-            <Icon
-              size={16}
-              name="md-woman"
-              family="ionicon"
-              color={focused ? "white" : materialTheme.COLORS.MUTED}
-              style={{ marginLeft: 4, marginRight: 4 }}
-            />
-          )
+        drawerContentOptions={{
+          activeTintColor: "white",
+          inactiveTintColor: "#000",
+          activeBackgroundColor: materialTheme.COLORS.ACTIVE,
+          inactiveBackgroundColor: "transparent",
+          itemStyle: {
+            width: width * 0.74,
+            paddingHorizontal: 12,
+            // paddingVertical: 4,
+            justifyContent: "center",
+            alignContent: "center",
+            // alignItems: 'center',
+            overflow: "hidden",
+          },
+          labelStyle: {
+            fontSize: 18,
+            fontWeight: "normal",
+          },
         }}
-      />
-      <Drawer.Screen
-        name="Man"
-        component={ProScreen}
-        options={{
-          drawerIcon: ({ focused }) => (
-            <Icon
-              size={16}
-              name="man"
-              family="entypo"
-              color={focused ? "white" : materialTheme.COLORS.MUTED}
-            />
-          )
-        }}
-      />
-      <Drawer.Screen
-        name="Kids"
-        component={ProScreen}
-        options={{
-          drawerIcon: ({ focused }) => (
-            <Icon
-              size={16}
-              name="baby"
-              family="GalioExtra"
-              color={focused ? "white" : materialTheme.COLORS.MUTED}
-            />
-          )
-        }}
-      />
-      <Drawer.Screen
-        name="New Collection"
-        component={ProScreen}
-        options={{
-          drawerIcon: ({ focused }) => (
-            <Icon
-              size={16}
-              name="grid-on"
-              family="material"
-              color={focused ? "white" : materialTheme.COLORS.MUTED}
-            />
-          )
-        }}
-      />
-      <Drawer.Screen
-        name="Profile"
-        component={ProfileStack}
-        options={{
-          drawerIcon: ({ focused }) => (
-            <Icon
-              size={16}
-              name="circle-10"
-              family="GalioExtra"
-              color={focused ? "white" : materialTheme.COLORS.MUTED}
-            />
-          )
-        }}
-      />
-      <Drawer.Screen
-        name="Settings"
-        component={SettingsStack}
-        options={{
-          drawerIcon: ({ focused }) => (
-            <Icon
-              size={16}
-              name="gears"
-              family="font-awesome"
-              color={focused ? "white" : materialTheme.COLORS.MUTED}
-              style={{ marginRight: -3 }}
-            />
-          )
-        }}
-      />
-      <Drawer.Screen
-        name="Components"
-        component={ComponentsStack}
-        options={{
-          drawerIcon: ({ focused }) => (
-            <Icon
-              size={16}
-              name="md-switch"
-              family="ionicon"
-              color={focused ? "white" : materialTheme.COLORS.MUTED}
-              style={{ marginRight: 2, marginLeft: 2 }}
-            />
-          )
-        }}
-      />
-      <Drawer.Screen
-        name="Sign In"
-        component={ProScreen}
-        options={{
-          drawerIcon: ({ focused }) => (
-            <Icon
-              size={16}
-              name="ios-log-in"
-              family="ionicon"
-              color={focused ? "white" : materialTheme.COLORS.MUTED}
-            />
-          )
-        }}
-      />
-      <Drawer.Screen
-        name="Sign Up"
-        component={ProScreen}
-        options={{
-          drawerIcon: ({ focused }) => (
-            <Icon
-              size={16}
-              name="md-person-add"
-              family="ionicon"
-              color={focused ? "white" : materialTheme.COLORS.MUTED}
-            />
-          )
-        }}
-      />
-    </Drawer.Navigator>
+        initialRouteName="Home"
+      >
+        <Drawer.Screen
+          name="Home"
+          component={HomeStack}
+          options={{
+            drawerIcon: ({ focused }) => (
+              <Icon
+                size={16}
+                name="home-outline"
+                family="ionicon"
+                color={focused ? "white" : materialTheme.COLORS.MUTED}
+              />
+            ),
+          }}
+        />
+        <Drawer.Screen
+          name="Profile"
+          component={ProfileStack}
+          options={{
+            drawerIcon: ({ focused }) => (
+              <Icon
+                size={16}
+                name="circle-10"
+                family="GalioExtra"
+                color={focused ? "white" : materialTheme.COLORS.MUTED}
+              />
+            ),
+          }}
+        />
+        <Drawer.Screen
+          name="Settings"
+          component={SettingsStack}
+          options={{
+            drawerIcon: ({ focused }) => (
+              <Icon
+                size={16}
+                name="gears"
+                family="font-awesome"
+                color={focused ? "white" : materialTheme.COLORS.MUTED}
+                style={{ marginRight: -3 }}
+              />
+            ),
+          }}
+        />
+        <Drawer.Screen
+          name="Logout"
+          component={LogOutStack}
+          options={{
+            drawerIcon: ({ focused }) => (
+              <Icon
+                size={16}
+                name="md-person-add"
+                family="ionicon"
+                color={focused ? "white" : materialTheme.COLORS.MUTED}
+              />
+            ),
+          }}
+        />
+      </Drawer.Navigator>
+    </UserContext.Provider>
   );
 }
 
-export default function OnboardingStack(props) {
-  return (
-    <Stack.Navigator mode="card" headerMode="none">
-      <Stack.Screen
-        name="Onboarding"
-        component={OnboardingScreen}
-        option={{
-          headerTransparent: true
-        }}
-      />
-      <Stack.Screen name="App" component={AppStack} />
-    </Stack.Navigator>
-  );
-}
-
-/*
-const ProfileStack = createStackNavigator({
-  Profile: {
-    screen: ProfileScreen,
-    navigationOptions: ({ navigation }) => ({
-      header: <Header white transparent title="Profile" navigation={navigation} />,
-      headerTransparent: true,
-    })
-  },
-}, {
-  cardStyle: { backgroundColor: '#EEEEEE', },
-  transitionConfig,
-});
-
-const SettingsStack = createStackNavigator({
-  Settings: {
-    screen: SettingsScreen,
-    navigationOptions: ({ navigation }) => ({
-      header: <Header title="Settings" navigation={navigation} />,
-    })
-  },
-}, {
-  cardStyle: { backgroundColor: '#EEEEEE', },
-  transitionConfig,
-});
-
-const ComponentsStack = createStackNavigator({
-  Components: {
-    screen: ComponentsScreen,
-    navigationOptions: ({ navigation }) => ({
-      header: <Header title="Components" navigation={navigation} />,
-    })
-  },
-}, {
-  cardStyle: { backgroundColor: '#EEEEEE', },
-  transitionConfig,
-});
-
-
-const HomeStack = createStackNavigator({
-  Home: {
-    screen: HomeScreen,
-    navigationOptions: ({navigation}) => ({
-      header: <Header search tabs title="Home" navigation={navigation} />,
-    })
-  },
-  Pro: {
-    screen: ProScreen,
-    navigationOptions: ({navigation}) => ({
-      header: <Header back white transparent title="" navigation={navigation} />,
-      headerTransparent: true,
-    })
-  },
-},
-{
-  cardStyle: { 
-    backgroundColor: '#EEEEEE', //this is the backgroundColor for the app
-  },
-  transitionConfig,
-});
-
-const AppStack = createDrawerNavigator(
-  {
-    Onboarding: {
-      screen: OnboardingScreen,
-      navigationOptions: {
-        drawerLabel: () => {},
-      },
-    },
-    Home: {
-      screen: HomeStack,
-      navigationOptions: {
-        drawerLabel: ({focused}) => (
-          <Drawer focused={focused} screen="Home" title="Home" />
-        )
+export default function OnboardingStack() {
+  const [state, dispatch] = React.useReducer(
+    (prevState, action) => {
+      switch (action.type) {
+        case "RESTORE_TOKEN":
+          return {
+            ...prevState,
+            userToken: action.token,
+            isLoading: false,
+          };
+        case "SIGN_IN":
+          return {
+            ...prevState,
+            isSignout: false,
+            userToken: action.token,
+            userInfo: action.user,
+          };
+        case "SIGN_OUT":
+          return {
+            ...prevState,
+            isSignout: true,
+            userToken: null,
+          };
       }
     },
-    Woman: {
-      screen: ProScreen,
-      navigationOptions: (navOpt) => ({
-        drawerLabel: ({focused}) => (
-          <Drawer focused={focused} screen="Pro" title="Woman" />
-        ),
-      }),
-    },
-    Man: {
-      screen: ProScreen,
-      navigationOptions: (navOpt) => ({
-        drawerLabel: ({focused}) => (
-          <Drawer focused={focused} screen="Pro" title="Man" />
-        ),
-      }),
-    },
-    Kids: {
-      screen: ProScreen,
-      navigationOptions: (navOpt) => ({
-        drawerLabel: ({focused}) => (
-          <Drawer focused={focused} screen="Pro" title="Kids" />
-        ),
-      }),
-    },
-    NewCollection: {
-      screen: ProScreen,
-      navigationOptions: (navOpt) => ({
-        drawerLabel: ({focused}) => (
-          <Drawer focused={focused} screen="Pro" title="New Collection" />
-        ),
-      }),
-    },
-    Profile: {
-      screen: ProfileStack,
-      navigationOptions: (navOpt) => ({
-        drawerLabel: ({focused}) => (
-          <Drawer focused={focused} screen="Profile" title="Profile" />
-        ),
-      }),
-    },
-    Settings: {
-      screen: SettingsStack,
-      navigationOptions: (navOpt) => ({
-        drawerLabel: ({focused}) => (
-          <Drawer focused={focused} screen="Settings" title="Settings" />
-        ),
-      }),
-    },
-    Components: {
-      screen: ComponentsStack,
-      navigationOptions: (navOpt) => ({
-        drawerLabel: ({focused}) => (
-          <Drawer focused={focused} screen="Components" title="Components" />
-        ),
-      }),
-    },
-    MenuDivider: {
-      screen: HomeStack,
-      navigationOptions: {
-        drawerLabel: () => <Block style={{marginVertical: 8}}><Text>{` `}</Text></Block>,
+    {
+      isLoading: true,
+      isSignout: false,
+      userToken: null,
+      userInfo: null,
+    }
+  );
+
+  React.useEffect(() => {
+    // Fetch the token from storage then navigate to our appropriate place
+    const bootstrapAsync = async () => {
+      let userToken;
+
+      try {
+        // Restore token stored in `SecureStore` or any other encrypted storage
+        userToken = await SecureStore.getItemAsync("userToken");
+      } catch (e) {
+        // Restoring token failed
+        alert("Restoring token failed!!!");
+      }
+      dispatch({ type: "RESTORE_TOKEN", token: userToken });
+    };
+
+    bootstrapAsync();
+  }, []);
+
+  const authContext = React.useMemo(
+    () => ({
+      signIn: async (data) => {
+        firebase
+          .auth()
+          .signInWithEmailAndPassword(data.email, data.password)
+          .then((response) => {
+            const uid = response.user.uid;
+            const usersRef = firebase.firestore().collection("users");
+            usersRef
+              .doc(uid)
+              .get()
+              .then((firestoreDocument) => {
+                if (!firestoreDocument.exists) {
+                  alert("User does not exist anymore.");
+                  return;
+                }
+                const user = firestoreDocument.data();
+                dispatch({ type: "SIGN_IN", token: uid, user: user });
+              })
+              .catch((error) => {
+                alert(error);
+              });
+          })
+          .catch((error) => {
+            // alert(error);
+          });
       },
-    },
-    SignIn: {
-      screen: ProScreen,
-      navigationOptions: (navOpt) => ({
-        drawerLabel: ({focused}) => (
-          <Drawer focused={focused} screen="Pro" title="Sign In" />
-        ),
-      }),
-    },
-    SignUp: {
-      screen: ProScreen,
-      navigationOptions: (navOpt) => ({
-        drawerLabel: ({focused}) => (
-          <Drawer focused={focused} screen="Pro" title="Sign Up" />
-        ),
-      }),
-    },
-  },
-  Menu
-);
-
-const AppContainer = createAppContainer(AppStack);
-export default AppContainer;
-
-*/
+      signOut: () => dispatch({ type: "SIGN_OUT" }),
+      signUp: async (data) => {
+        const email = data.email;
+        const password = data.password;
+        const fullName = data.fullName;
+        firebase
+          .auth()
+          .createUserWithEmailAndPassword(email, password)
+          .then((response) => {
+            const uid = response.user.uid;
+            const requestData = {
+              id: uid,
+              email,
+              fullName,
+            };
+            const usersRef = firebase.firestore().collection("users");
+            usersRef
+              .doc(uid)
+              .set(requestData)
+              .then(() => {
+                dispatch({
+                  type: "SIGN_IN",
+                  token: response.user.uid,
+                  user: response.user,
+                });
+              })
+              .catch((error) => {
+                alert(error);
+              });
+          })
+          .catch((error) => {
+            // alert(error);
+          });
+      },
+    }),
+    []
+  );
+  return (
+    <AuthContext.Provider value={authContext}>
+      <Stack.Navigator mode="card" headerMode="none">
+        {state.isLoading ? (
+          // We haven't finished checking for the token yet
+          <Stack.Screen name="Splash" component={SplashScreen} />
+        ) : state.userToken == null ? (
+          <>
+            <Stack.Screen name="Login" component={Login} />
+            <Stack.Screen name="Registration" component={Registration} />
+          </>
+        ) : (
+          <>
+            <Stack.Screen name="AppStack">
+              {(prop) => <AppStack {...prop} userInfo={state.userInfo} />}
+            </Stack.Screen>
+          </>
+        )}
+      </Stack.Navigator>
+    </AuthContext.Provider>
+  );
+}

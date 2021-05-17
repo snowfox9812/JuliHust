@@ -20,7 +20,7 @@ export default class Onboarding extends React.Component {
             style={{ height: height, width: width, marginTop: '-55%', zIndex: 1 }}
           />
         </Block>
-        <Block flex space="between" style={styles.padded}>
+        {/* <Block flex space="between" style={styles.padded}>
           <Block flex space="around" style={{ zIndex: 2 }}>
             <Block>
               <Block>
@@ -31,6 +31,27 @@ export default class Onboarding extends React.Component {
               </Block>
               <Text size={16} color='rgba(255,255,255,0.6)'>
                 Fully coded React Native components.
+              </Text>
+            </Block>
+            <Block center>
+              <Button
+                shadowless
+                style={styles.button}
+                color={materialTheme.COLORS.BUTTON_COLOR}
+                onPress={() => navigation.navigate('App')}>
+                GET STARTED
+              </Button>
+            </Block>
+          </Block>
+        </Block> */}
+        <Block flex space="between" style={styles.padded}>
+          <Block flex space="around" style={{ zIndex: 2 }}>
+            <Block>
+              <Block>
+                <Text color="white" size={60}>JuliHust</Text>
+              </Block>
+              <Text size={17} color='rgba(255,255,255,0.6)'>
+                A simple app in Japanese voice recognition
               </Text>
             </Block>
             <Block center>
