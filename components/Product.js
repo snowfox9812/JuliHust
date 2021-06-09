@@ -1,28 +1,55 @@
-import React from 'react';
-import { withNavigation } from '@react-navigation/compat';
-import { StyleSheet, Dimensions, Image, TouchableWithoutFeedback } from 'react-native';
-import { Block, Text, theme } from 'galio-framework';
+import React from "react";
+import { withNavigation } from "@react-navigation/compat";
+import {
+  StyleSheet,
+  Dimensions,
+  Image,
+  TouchableWithoutFeedback,
+  ImageBackground,
+} from "react-native";
+import { Block, Text, theme } from "galio-framework";
 
-const { width } = Dimensions.get('screen');
+const { width } = Dimensions.get("screen");
 
 class Product extends React.Component {
   render() {
-    const { navigation, product, horizontal, full, style, priceColor, imageStyle } = this.props;
-    const imageStyles = [styles.image, full ? styles.fullImage : styles.horizontalImage, imageStyle];
+    const { navigation, product } = this.props;
 
     return (
-      <Block row={horizontal} card flex style={[styles.product, styles.shadow, style]}>
-        <TouchableWithoutFeedback onPress={() => navigation.navigate('Record', { product: product })}>
-          <Block flex style={[styles.imageContainer, styles.shadow]}>
-            <Image source={{ uri: product.image }} style={imageStyles} />
+      <Block center style={styles.unitComponent}>
+        <ImageBackground
+          source={require("../assets/images/figma/UnitBackground.png")}
+          style={styles.image}
+        >
+          <Block flex row>
+            <TouchableWithoutFeedback
+              onPress={() =>
+                navigation.navigate("Record", { product: product })
+              }
+            >
+              <Block flex={1} middle style={{ marginLeft: 30 }}>
+                <Image
+                  style={styles.unitImage}
+                  source={require("../assets/images/figma/UnitImage.png")}
+                />
+              </Block>
+            </TouchableWithoutFeedback>
+            <TouchableWithoutFeedback
+              onPress={() =>
+                navigation.navigate("Record", { product: product })
+              }
+            >
+              <Block flex={3} middle left style={{ marginLeft: 15 }}>
+                <Text size={13} color={"#6E6E6E"}>
+                  みんなの日本語
+                </Text>
+                <Text size={20} color={"#6E6E6E"} bold>
+                  {product.title}
+                </Text>
+              </Block>
+            </TouchableWithoutFeedback>
           </Block>
-        </TouchableWithoutFeedback>
-        <TouchableWithoutFeedback onPress={() => navigation.navigate('Record', { product: product })}>
-          <Block flex space="between" style={styles.productDescription}>
-            <Text size={14} style={styles.productTitle}>{product.title}</Text>
-            {/* <Text size={12} muted={!priceColor} color={priceColor}>${product.price}</Text> */}
-          </Block>
-        </TouchableWithoutFeedback>
+        </ImageBackground>
       </Block>
     );
   }
@@ -31,41 +58,15 @@ class Product extends React.Component {
 export default withNavigation(Product);
 
 const styles = StyleSheet.create({
-  product: {
-    backgroundColor: theme.COLORS.WHITE,
-    marginVertical: theme.SIZES.BASE,
-    borderWidth: 0,
-    minHeight: 114,
-  },
-  productTitle: {
-    flex: 1,
-    flexWrap: 'wrap',
-    paddingBottom: 6,
-  },
-  productDescription: {
-    padding: theme.SIZES.BASE / 2,
-  },
-  imageContainer: {
-    elevation: 1,
+  unitComponent: {
+    marginBottom: 20,
   },
   image: {
-    borderRadius: 3,
-    marginHorizontal: theme.SIZES.BASE / 2,
-    marginTop: -16,
+    width: width,
+    height: 120,
   },
-  horizontalImage: {
-    height: 122,
-    width: 'auto',
-  },
-  fullImage: {
-    height: 215,
-    width: width - theme.SIZES.BASE * 3,
-  },
-  shadow: {
-    shadowColor: theme.COLORS.BLACK,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 4,
-    shadowOpacity: 0.1,
-    elevation: 2,
+  unitImage: {
+    width: 80,
+    height: 55,
   },
 });

@@ -1,7 +1,6 @@
 import React, { useContext } from "react";
 import { Dimensions, StyleSheet } from "react-native";
 import { createStackNavigator } from "@react-navigation/stack";
-import { createDrawerNavigator } from "@react-navigation/drawer";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Block, Text } from "galio-framework";
 import HomeScreen from "../screens/Home";
@@ -17,7 +16,6 @@ import AboutScreen from "../screens/About";
 import UpdateProfile from "../screens/UpdateProfile";
 import ResultDetail from "../screens/ResultDetail";
 
-import CustomDrawerContent from "./Menu";
 import { Icon, Header } from "../components";
 import { Images, materialTheme } from "../constants/";
 
@@ -28,15 +26,12 @@ import { firebase } from "../src/firebase/config";
 
 const { width } = Dimensions.get("screen");
 const Stack = createStackNavigator();
-const Drawer = createDrawerNavigator();
 const Tab = createBottomTabNavigator();
 
 var profile = {
   avatar: Images.Profile,
   name: "Rachel Brown",
   type: "Beginner",
-  plan: "Pro",
-  rating: 4.8,
 };
 
 function SplashScreen() {
@@ -49,7 +44,7 @@ function SplashScreen() {
 
 function ProfileStack(props) {
   return (
-    <Stack.Navigator initialRouteName="Profile" mode="card" headerMode="screen">
+    <Stack.Navigator initialRouteName="Profile" mode="card" headerMode="none">
       <Stack.Screen
         name="Profile"
         component={ProfileScreen}
@@ -108,7 +103,7 @@ function SettingsStack(props) {
     <Stack.Navigator
       initialRouteName="Settings"
       mode="card"
-      headerMode="screen"
+      headerMode="none"
     >
       <Stack.Screen
         name="Settings"
@@ -142,13 +137,22 @@ function SettingsStack(props) {
           ),
         }}
       />
+      <Stack.Screen
+        name="Logout"
+        component={Logout}
+        options={{
+          header: ({ navigation, scene }) => (
+            <Header back title="Logout" scene={scene} navigation={navigation} />
+          ),
+        }}
+      />
     </Stack.Navigator>
   );
 }
 
 function HomeStack(props) {
   return (
-    <Stack.Navigator mode="card" headerMode="screen">
+    <Stack.Navigator mode="card" headerMode="none">
       <Stack.Screen
         name="Home"
         component={HomeScreen}
@@ -199,94 +203,6 @@ function AppStack(props) {
   profile.name = props.userInfo.fullName;
   return (
     <UserContext.Provider value={props.userInfo}>
-      {/* <Drawer.Navigator
-        style={{ flex: 1 }}
-        drawerContent={(props) => (
-          <CustomDrawerContent {...props} profile={profile} />
-        )}
-        drawerStyle={{
-          backgroundColor: "white",
-          width: width * 0.8,
-        }}
-        drawerContentOptions={{
-          activeTintColor: "white",
-          inactiveTintColor: "#000",
-          activeBackgroundColor: materialTheme.COLORS.ACTIVE,
-          inactiveBackgroundColor: "transparent",
-          itemStyle: {
-            width: width * 0.74,
-            paddingHorizontal: 12,
-            // paddingVertical: 4,
-            justifyContent: "center",
-            alignContent: "center",
-            // alignItems: 'center',
-            overflow: "hidden",
-          },
-          labelStyle: {
-            fontSize: 18,
-            fontWeight: "normal",
-          },
-        }}
-        initialRouteName="Home"
-      >
-        <Drawer.Screen
-          name="Home"
-          component={HomeStack}
-          options={{
-            drawerIcon: ({ focused }) => (
-              <Icon
-                size={16}
-                name="home-outline"
-                family="ionicon"
-                color={focused ? "white" : materialTheme.COLORS.MUTED}
-              />
-            ),
-          }}
-        />
-        <Drawer.Screen
-          name="Profile"
-          component={ProfileStack}
-          options={{
-            drawerIcon: ({ focused }) => (
-              <Icon
-                size={16}
-                name="circle-10"
-                family="GalioExtra"
-                color={focused ? "white" : materialTheme.COLORS.MUTED}
-              />
-            ),
-          }}
-        />
-        <Drawer.Screen
-          name="Settings"
-          component={SettingsStack}
-          options={{
-            drawerIcon: ({ focused }) => (
-              <Icon
-                size={16}
-                name="gears"
-                family="font-awesome"
-                color={focused ? "white" : materialTheme.COLORS.MUTED}
-                style={{ marginRight: -3 }}
-              />
-            ),
-          }}
-        />
-        <Drawer.Screen
-          name="Logout"
-          component={LogOutStack}
-          options={{
-            drawerIcon: ({ focused }) => (
-              <Icon
-                size={16}
-                name="md-person-add"
-                family="ionicon"
-                color={focused ? "white" : materialTheme.COLORS.MUTED}
-              />
-            ),
-          }}
-        />
-      </Drawer.Navigator> */}
       <Tab.Navigator
         screenOptions={({ route }) => ({
           tabBarIcon: ({ focused, color, size }) => {
@@ -334,7 +250,7 @@ function AppStack(props) {
           activeTintColor: "#1FACFB",
           inactiveTintColor: "gray",
           style: {
-            borderTopLeftRadius: 20,
+            // borderTopLeftRadius: 20,
             shadowOffset: {
               width: 0,
               height: 1,

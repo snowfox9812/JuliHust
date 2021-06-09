@@ -1,18 +1,23 @@
 import React, { useState, useEffect } from "react";
 import { firebase } from "../src/firebase/config";
-import { StyleSheet, Dimensions, ActivityIndicator } from "react-native";
+import {
+  StyleSheet,
+  Dimensions,
+  ActivityIndicator,
+  ImageBackground,
+} from "react-native";
 import AuthContext from "../controller/authContext";
-import { Block, Text, theme, Input, Button } from "galio-framework";
+import { Block, Text, theme, Input, Button, Icon } from "galio-framework";
 import * as Permissions from "expo-permissions";
 import * as ImagePicker from "expo-image-picker";
-import { HeaderHeight } from "../constants/utils";
 const { width, height } = Dimensions.get("screen");
-const thumbMeasure = (width - 48 - 32) / 3;
+import { useNavigation } from "@react-navigation/native";
 
 export default function UpdateProfile() {
   var user = firebase.auth().currentUser;
   const db = firebase.firestore();
   const { signOut } = React.useContext(AuthContext);
+  const navigation = useNavigation();
 
   const [userInfo, setUserInfo] = useState();
   const [updatedDisplayName, setUpdatedDisplayName] = useState("");
@@ -20,7 +25,6 @@ export default function UpdateProfile() {
   const [image, setImage] = useState("");
   const [avatarName, setAvatarName] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
-
   const [cameraPermission, setCameraPermission] = useState(false);
 
   const updateUserInfo = () => {
@@ -120,7 +124,7 @@ export default function UpdateProfile() {
   }, []);
 
   return (
-    <Block style={styles.profile}>
+    <Block style={{ backgroundColor: "#ffffff", height: height }}>
       {isProcessing ? (
         <Block flex>
           <Block flex={1} middle>
@@ -130,71 +134,110 @@ export default function UpdateProfile() {
         </Block>
       ) : (
         userInfo && (
-          <Block flex style={styles.options}>
-            <Block flex={1} style={styles.updateItems}>
-              <Text size={16}>Display name:</Text>
-              <Input
-                defaultValue={userInfo.fullName ? userInfo.fullName : ""}
-                onChangeText={(text) => setUpdatedDisplayName(text)}
-                color={theme.COLORS.THEME}
-                style={{ borderColor: theme.COLORS.THEME }}
-              />
-            </Block>
-            <Block flex={1} style={styles.updateItems}>
-              <Text size={16}>Location:</Text>
-              <Input
-                defaultValue={userInfo.location ? userInfo.location : ""}
-                onChangeText={(text) => setUpdatedLocation(text)}
-                color={theme.COLORS.THEME}
-                style={{ borderColor: theme.COLORS.THEME }}
-              />
-            </Block>
-            <Block flex={1} style={styles.updateItems}>
-              <Block flex={1}>
-                <Text size={16}>Avatar: {image ? image : ""}</Text>
-              </Block>
-              <Block flex={3} row>
-                <Block flex={2}>
-                  <Button
-                    style={{
-                      maxWidth: ((width - theme.SIZES.BASE * 6) / 5) * 2,
-                    }}
+          <Block flex>
+            <ImageBackground
+              style={styles.headerImage}
+              source={require("../assets/images/blueHeader.png")}
+            >
+              <Block flex row>
+                <Block flex={1} style={{ marginTop: 35 }} center>
+                  <Icon
+                    size={20}
+                    name="arrow-back-outline"
+                    family="ionicon"
+                    color="white"
                     onPress={() => {
-                      onChooseImagePress("choose");
+                      navigation.goBack();
                     }}
-                  >
-                    Choose...
-                  </Button>
+                  />
                 </Block>
-                <Block flex={1} center>
-                  <Text size={16}>Or</Text>
-                </Block>
-                <Block flex={2}>
-                  <Button
-                    style={{
-                      maxWidth: ((width - theme.SIZES.BASE * 6) / 5) * 2,
-                    }}
-                    onPress={() => {
-                      onChooseImagePress("take");
-                    }}
+                <Block flex={9} center style={{ marginTop: 35 }}>
+                  <Text
+                    size={16}
+                    color={"#FFFFFF"}
+                    bold
+                    style={{ marginRight: 44 }}
                   >
-                    Take Image
-                  </Button>
+                    Update profile
+                  </Text>
                 </Block>
               </Block>
+            </ImageBackground>
+            <Block flex style={styles.options}>
+              <Block flex={1} style={styles.updateItems}>
+                <Text size={16}>Display name:</Text>
+                <Input
+                  rounded
+                  defaultValue={userInfo.fullName ? userInfo.fullName : ""}
+                  onChangeText={(text) => setUpdatedDisplayName(text)}
+                  color={"#1FACFB"}
+                  style={{ borderColor: "#1FACFB" }}
+                />
+              </Block>
+              <Block flex={1} style={styles.updateItems}>
+                <Text size={16}>Location:</Text>
+                <Input
+                  rounded
+                  defaultValue={userInfo.location ? userInfo.location : ""}
+                  onChangeText={(text) => setUpdatedLocation(text)}
+                  color={"#1FACFB"}
+                  style={{ borderColor: "#1FACFB" }}
+                />
+              </Block>
+              <Block flex={1} style={styles.updateItems}>
+                <Block flex={1}>
+                  <Text size={16}>Avatar: {image ? image : ""}</Text>
+                </Block>
+                <Block flex={3} row>
+                  <Block flex={2}>
+                    <Button
+                      round
+                      style={{
+                        maxWidth: ((width - theme.SIZES.BASE * 6) / 5) * 2,
+                      }}
+                      color={"#1FACFB"}
+                      shadowless
+                      onPress={() => {
+                        onChooseImagePress("choose");
+                      }}
+                    >
+                      Choose...
+                    </Button>
+                  </Block>
+                  <Block flex={1} center>
+                    <Text size={16}>Or</Text>
+                  </Block>
+                  <Block flex={2}>
+                    <Button
+                      round
+                      style={{
+                        maxWidth: ((width - theme.SIZES.BASE * 6) / 5) * 2,
+                      }}
+                      color={"#1FACFB"}
+                      shadowless
+                      onPress={() => {
+                        onChooseImagePress("take");
+                      }}
+                    >
+                      Take Image
+                    </Button>
+                  </Block>
+                </Block>
+              </Block>
+              <Block flex={1} center>
+                <Button
+                  round
+                  color={"#1FACFB"}
+                  shadowless
+                  onPress={() => {
+                    updateUserInfo();
+                  }}
+                >
+                  Update profile
+                </Button>
+              </Block>
+              <Block flex={5}></Block>
             </Block>
-            <Block flex={1} center>
-              <Button
-                capitalize
-                size="small"
-                onPress={() => {
-                  updateUserInfo();
-                }}
-              >
-                Update profile
-              </Button>
-            </Block>
-            <Block flex={5}></Block>
           </Block>
         )
       )}
@@ -203,25 +246,15 @@ export default function UpdateProfile() {
 }
 
 const styles = StyleSheet.create({
-  profile: {
-    marginTop: HeaderHeight + theme.SIZES.BASE,
-    marginBottom: -HeaderHeight * 2,
-  },
   options: {
-    position: "relative",
-    padding: theme.SIZES.BASE,
-    marginHorizontal: theme.SIZES.BASE,
-    marginTop: theme.SIZES.BASE * 2,
-    borderRadius: 13,
-    backgroundColor: theme.COLORS.WHITE,
-    shadowColor: "black",
-    shadowOffset: { width: 0, height: 0 },
-    shadowRadius: 8,
-    shadowOpacity: 0.2,
-    zIndex: 2,
-    minHeight: height - theme.SIZES.BASE * 9,
+    marginTop: 20,
+    marginHorizontal: 20,
   },
   updateItems: {
     marginBottom: theme.SIZES.BASE,
+  },
+  headerImage: {
+    width: width,
+    height: 95,
   },
 });

@@ -53,6 +53,7 @@
     "react-native-modal-dropdown": "git+https://github.com/siemiatj/react-native-modal-dropdown.git",
     "react-native-paper": "^4.8.1",
     "react-native-permissions": "^3.0.2",
+    "react-native-progress-circle": "^2.1.0",
     "react-native-reanimated": "~1.13.0",
     "react-native-safe-area-context": "3.1.9",
     "react-native-screens": "~2.15.2",
