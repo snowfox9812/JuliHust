@@ -286,7 +286,7 @@ export default class Record extends React.Component {
     // Get audio file's info
     const info = await FileSystem.getInfoAsync(this.recording.getURI());
     let uri = info.uri;
-    let apiUrl = "http://192.168.0.158:1234/upload";
+    let apiUrl = "http://192.168.0.167:1234/upload";
 
     let timeStamp = Date.parse(new Date());
     let fileName = userInfo.id + "_" + timeStamp + "_" + lesson + ".wav";

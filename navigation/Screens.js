@@ -1,14 +1,16 @@
 import React, { useContext } from "react";
-import { Dimensions } from "react-native";
+import { Dimensions, StyleSheet } from "react-native";
 import { createStackNavigator } from "@react-navigation/stack";
 import { createDrawerNavigator } from "@react-navigation/drawer";
-import { Block, Text} from "galio-framework";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { Block, Text } from "galio-framework";
 import HomeScreen from "../screens/Home";
 import ProfileScreen from "../screens/Profile";
 import SettingsScreen from "../screens/Settings";
 import Login from "../screens/Login";
 import Logout from "../screens/Logout";
 import Registration from "../screens/Registration";
+import ResetPassword from "../screens/ResetPassword";
 import Record from "../components/AudioRecord";
 import ChangePasswordScreen from "../screens/ChangePassword";
 import AboutScreen from "../screens/About";
@@ -27,6 +29,7 @@ import { firebase } from "../src/firebase/config";
 const { width } = Dimensions.get("screen");
 const Stack = createStackNavigator();
 const Drawer = createDrawerNavigator();
+const Tab = createBottomTabNavigator();
 
 var profile = {
   avatar: Images.Profile,
@@ -151,13 +154,7 @@ function HomeStack(props) {
         component={HomeScreen}
         options={{
           header: ({ navigation, scene }) => (
-            <Header
-              search
-              tabs
-              title="Home"
-              navigation={navigation}
-              scene={scene}
-            />
+            <Header title="Home" navigation={navigation} scene={scene} />
           ),
         }}
       />
@@ -166,14 +163,7 @@ function HomeStack(props) {
         component={Record}
         options={{
           header: ({ navigation, scene }) => (
-            <Header
-              back
-              search
-              tabs
-              title="Record"
-              navigation={navigation}
-              scene={scene}
-            />
+            <Header back title="Record" navigation={navigation} scene={scene} />
           ),
         }}
       />
@@ -209,7 +199,7 @@ function AppStack(props) {
   profile.name = props.userInfo.fullName;
   return (
     <UserContext.Provider value={props.userInfo}>
-      <Drawer.Navigator
+      {/* <Drawer.Navigator
         style={{ flex: 1 }}
         drawerContent={(props) => (
           <CustomDrawerContent {...props} profile={profile} />
@@ -296,7 +286,82 @@ function AppStack(props) {
             ),
           }}
         />
-      </Drawer.Navigator>
+      </Drawer.Navigator> */}
+      <Tab.Navigator
+        screenOptions={({ route }) => ({
+          tabBarIcon: ({ focused, color, size }) => {
+            let iconName;
+            let backgroundColor;
+
+            if (route.name === "Home") {
+              iconName = "ios-home-outline";
+              backgroundColor = focused ? "#1FACFB" : "#00000";
+            } else if (route.name === "Settings") {
+              iconName = "ios-settings-outline";
+              backgroundColor = focused ? "#1FACFB" : "#00000";
+            } else if (route.name === "Profile") {
+              iconName = "ios-person-outline";
+              backgroundColor = focused ? "#1FACFB" : "#00000";
+            }
+            return (
+              <Block style={{ marginBottom: 12 }}>
+                <Block style={styles.elipse_78}>
+                  <Block flex middle>
+                    <Block
+                      style={{
+                        backgroundColor: backgroundColor,
+                        borderRadius: 46 / 2,
+                        height: 46,
+                        width: 46,
+                      }}
+                    >
+                      <Block flex middle>
+                        <Icon
+                          size={24}
+                          name={iconName}
+                          family="ionicon"
+                          color={focused ? "white" : "gray"}
+                        />
+                      </Block>
+                    </Block>
+                  </Block>
+                </Block>
+              </Block>
+            );
+          },
+        })}
+        tabBarOptions={{
+          activeTintColor: "#1FACFB",
+          inactiveTintColor: "gray",
+          style: {
+            borderTopLeftRadius: 20,
+            shadowOffset: {
+              width: 0,
+              height: 1,
+            },
+            shadowOpacity: 0.15,
+            shadowColor: "#3E5163",
+          },
+        }}
+      >
+        <Tab.Screen name="Home" component={HomeStack} />
+        <Tab.Screen name="Profile" component={ProfileStack} />
+        <Tab.Screen name="Settings" component={SettingsStack} />
+        {/* <Tab.Screen
+          name="Logout"
+          component={LogOutStack}
+          options={{
+            drawerIcon: ({ focused }) => (
+              <Icon
+                size={16}
+                name="md-person-add"
+                family="ionicon"
+                color={focused ? "white" : materialTheme.COLORS.MUTED}
+              />
+            ),
+          }}
+        /> */}
+      </Tab.Navigator>
     </UserContext.Provider>
   );
 }
@@ -319,6 +384,12 @@ export default function OnboardingStack() {
             userInfo: action.user,
           };
         case "SIGN_OUT":
+          return {
+            ...prevState,
+            isSignout: true,
+            userToken: null,
+          };
+        case "RESET_PASSWORD":
           return {
             ...prevState,
             isSignout: true,
@@ -414,6 +485,23 @@ export default function OnboardingStack() {
             // alert(error);
           });
       },
+      resetPassword: async (data) => {
+        const email = data.email;
+        firebase
+          .auth()
+          .sendPasswordResetEmail(email)
+          .then(function () {
+            // Email sent.
+            dispatch({
+              type: "RESET_PASSWORD",
+            });
+            alert("Email sent! Please check your email to reset password");
+          })
+          .catch(function (error) {
+            // An error happened.
+            alert("Error occured, please try again later!");
+          });
+      },
     }),
     []
   );
@@ -427,6 +515,7 @@ export default function OnboardingStack() {
           <>
             <Stack.Screen name="Login" component={Login} />
             <Stack.Screen name="Registration" component={Registration} />
+            <Stack.Screen name="ResetPassword" component={ResetPassword} />
           </>
         ) : (
           <>
@@ -439,3 +528,17 @@ export default function OnboardingStack() {
     </AuthContext.Provider>
   );
 }
+const styles = StyleSheet.create({
+  elipse_78: {
+    backgroundColor: "white",
+    borderRadius: 54 / 2,
+    height: 54,
+    width: 54,
+  },
+  elipse_77: {
+    backgroundColor: "#1FACFB",
+    borderRadius: 46 / 2,
+    height: 46,
+    width: 46,
+  },
+});

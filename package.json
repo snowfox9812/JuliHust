@@ -20,6 +20,7 @@
     "@react-native-community/push-notification-ios": "^1.8.0",
     "@react-native-community/slider": "^3.0.3",
     "@react-native-firebase/app": "^11.2.0",
+    "@react-navigation/bottom-tabs": "^5.11.11",
     "@react-navigation/compat": "~5.1.25",
     "@react-navigation/drawer": "5.12.4",
     "@react-navigation/native": "^5.9.4",

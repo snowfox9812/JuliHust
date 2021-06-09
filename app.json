@@ -12,9 +12,9 @@
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "splash": {
-      "image": "./assets/images/splash.png",
+      "image": "./assets/images/figma/splash.png",
       "resizeMode": "cover",
-      "backgroundColor": "#6C24AA"
+      "backgroundColor": "#1FACFB"
     },
     "updates": {
       "fallbackToCacheTimeout": 0
