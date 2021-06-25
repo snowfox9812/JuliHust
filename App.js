@@ -3,7 +3,7 @@ import { Platform, StatusBar, Image } from "react-native";
 import AppLoading from "expo-app-loading";
 import { Asset } from "expo-asset";
 import { Block, GalioProvider } from "galio-framework";
-
+import * as Font from "expo-font";
 import { Images, products, materialTheme } from "./constants/";
 
 import { NavigationContainer } from "@react-navigation/native";
@@ -39,11 +39,20 @@ export default class App extends React.Component {
     super(props);
     this.state = {
       isLoadingComplete: false,
+      fontLoaded: false,
     };
+  }
+  componentDidMount() {
+    (async () => {
+      await Font.loadAsync({
+        "AvenirNextLT": require("./assets/fonts/AvenirNextLTPro-Regular.otf"),
+      });
+      this.setState({ fontLoaded: true });
+    })();
   }
 
   render() {
-    if (!this.state.isLoadingComplete && !this.props.skipLoadingScreen) {
+    if (!this.state.isLoadingComplete && !this.props.skipLoadingScreen && !this.state.fontLoaded) {
       return (
         <AppLoading
           startAsync={this._loadResourcesAsync}
