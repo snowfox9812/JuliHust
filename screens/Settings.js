@@ -1,14 +1,13 @@
 import React from "react";
 import {
   StyleSheet,
-  Switch,
   FlatList,
-  Platform,
   TouchableOpacity,
-  View,
+  Dimensions,
+  ImageBackground,
 } from "react-native";
 import { Block, Text, theme, Icon } from "galio-framework";
-import materialTheme from "../constants/Theme";
+const { width, height } = Dimensions.get("screen");
 
 export default class Settings extends React.Component {
   state = {};
@@ -20,26 +19,6 @@ export default class Settings extends React.Component {
     const { navigate } = this.props.navigation;
 
     switch (item.type) {
-      case "switch":
-        return (
-          <Block row middle space="between" style={styles.rows}>
-            <Text size={14}>{item.title}</Text>
-            <Switch
-              onValueChange={() => this.toggleSwitch(item.id)}
-              ios_backgroundColor={materialTheme.COLORS.SWITCH_OFF}
-              thumbColor={
-                Platform.OS === "android"
-                  ? materialTheme.COLORS.SWITCH_OFF
-                  : null
-              }
-              trackColor={{
-                false: materialTheme.COLORS.SWITCH_OFF,
-                true: materialTheme.COLORS.SWITCH_ON,
-              }}
-              value={this.state[item.id]}
-            />
-          </Block>
-        );
       case "button":
         if (item.id === "changePassword") {
           return (
@@ -58,17 +37,36 @@ export default class Settings extends React.Component {
           );
         } else if (item.id === "about") {
           return (
-            <Block style={styles.rows}>
-              <TouchableOpacity onPress={() => navigate("About")}>
-                <Block row middle space="between" style={{ paddingTop: 7 }}>
-                  <Text size={14}>{item.title}</Text>
-                  <Icon
-                    name="angle-right"
-                    family="font-awesome"
-                    style={{ paddingRight: 5 }}
-                  />
-                </Block>
-              </TouchableOpacity>
+            <Block>
+              <Block flex style={styles.rows}>
+                <TouchableOpacity onPress={() => navigate("About")}>
+                  <Block row middle space="between" style={{ paddingTop: 7 }}>
+                    <Text size={14}>{item.title}</Text>
+                    <Icon
+                      name="angle-right"
+                      family="font-awesome"
+                      style={{ paddingRight: 5 }}
+                    />
+                  </Block>
+                </TouchableOpacity>
+              </Block>
+            </Block>
+          );
+        } else if (item.id === "logout") {
+          return (
+            <Block>
+              <Block flex style={styles.rows}>
+                <TouchableOpacity onPress={() => navigate("Logout")}>
+                  <Block row middle space="between" style={{ paddingTop: 7 }}>
+                    <Text size={14}>{item.title}</Text>
+                    <Icon
+                      name="angle-right"
+                      family="font-awesome"
+                      style={{ paddingRight: 5 }}
+                    />
+                  </Block>
+                </TouchableOpacity>
+              </Block>
             </Block>
           );
         }
@@ -81,19 +79,33 @@ export default class Settings extends React.Component {
     const recommended = [
       { title: "Reset Password", id: "changePassword", type: "button" },
       { title: "About", id: "about", type: "button" },
+      { title: "Logout", id: "logout", type: "button" },
     ];
 
     return (
-      <View
+      <Block
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.settings}
+        style={{ backgroundColor: "#ffffff", height: height }}
       >
+        <Block>
+          <ImageBackground
+            style={styles.headerImage}
+            source={require("../assets/images/blueHeader.png")}
+          >
+            <Block center style={{ marginTop: 50 }}>
+              <Text size={16} color={"#FFFFFF"} bold>
+                Settings
+              </Text>
+            </Block>
+          </ImageBackground>
+        </Block>
         <FlatList
           data={recommended}
           keyExtractor={(item, index) => item.id}
           renderItem={this.renderItem}
         />
-      </View>
+      </Block>
     );
   }
 }
@@ -112,5 +124,9 @@ const styles = StyleSheet.create({
     height: theme.SIZES.BASE * 2,
     paddingHorizontal: theme.SIZES.BASE,
     marginBottom: theme.SIZES.BASE / 2,
+  },
+  headerImage: {
+    width: width,
+    height: 95,
   },
 });

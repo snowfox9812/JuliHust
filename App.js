@@ -1,22 +1,9 @@
-/*!
-
- =========================================================
- * Material Kit React Native - v1.4.0
- =========================================================
- * Product Page: https://demos.creative-tim.com/material-kit-react-native/
- * Copyright 2019 Creative Tim (http://www.creative-tim.com)
- * Licensed under MIT (https://github.com/creativetimofficial/material-kit-react-native/blob/master/LICENSE)
- =========================================================
- * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-
-*/
-
 import React from "react";
 import { Platform, StatusBar, Image } from "react-native";
 import AppLoading from "expo-app-loading";
 import { Asset } from "expo-asset";
 import { Block, GalioProvider } from "galio-framework";
-
+import * as Font from "expo-font";
 import { Images, products, materialTheme } from "./constants/";
 
 import { NavigationContainer } from "@react-navigation/native";
@@ -52,11 +39,20 @@ export default class App extends React.Component {
     super(props);
     this.state = {
       isLoadingComplete: false,
+      fontLoaded: false,
     };
+  }
+  componentDidMount() {
+    (async () => {
+      await Font.loadAsync({
+        "AvenirNextLT": require("./assets/fonts/AvenirNextLTPro-Regular.otf"),
+      });
+      this.setState({ fontLoaded: true });
+    })();
   }
 
   render() {
-    if (!this.state.isLoadingComplete && !this.props.skipLoadingScreen) {
+    if (!this.state.isLoadingComplete && !this.props.skipLoadingScreen && !this.state.fontLoaded) {
       return (
         <AppLoading
           startAsync={this._loadResourcesAsync}

@@ -1,21 +1,21 @@
 import React, { useContext } from "react";
-import { Dimensions } from "react-native";
+import { Dimensions, StyleSheet } from "react-native";
 import { createStackNavigator } from "@react-navigation/stack";
-import { createDrawerNavigator } from "@react-navigation/drawer";
-import { Block, Text} from "galio-framework";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { Block, Text } from "galio-framework";
 import HomeScreen from "../screens/Home";
 import ProfileScreen from "../screens/Profile";
 import SettingsScreen from "../screens/Settings";
 import Login from "../screens/Login";
 import Logout from "../screens/Logout";
 import Registration from "../screens/Registration";
+import ResetPassword from "../screens/ResetPassword";
 import Record from "../components/AudioRecord";
 import ChangePasswordScreen from "../screens/ChangePassword";
 import AboutScreen from "../screens/About";
 import UpdateProfile from "../screens/UpdateProfile";
 import ResultDetail from "../screens/ResultDetail";
 
-import CustomDrawerContent from "./Menu";
 import { Icon, Header } from "../components";
 import { Images, materialTheme } from "../constants/";
 
@@ -26,14 +26,12 @@ import { firebase } from "../src/firebase/config";
 
 const { width } = Dimensions.get("screen");
 const Stack = createStackNavigator();
-const Drawer = createDrawerNavigator();
+const Tab = createBottomTabNavigator();
 
 var profile = {
   avatar: Images.Profile,
   name: "Rachel Brown",
   type: "Beginner",
-  plan: "Pro",
-  rating: 4.8,
 };
 
 function SplashScreen() {
@@ -46,7 +44,7 @@ function SplashScreen() {
 
 function ProfileStack(props) {
   return (
-    <Stack.Navigator initialRouteName="Profile" mode="card" headerMode="screen">
+    <Stack.Navigator initialRouteName="Profile" mode="card" headerMode="none">
       <Stack.Screen
         name="Profile"
         component={ProfileScreen}
@@ -105,7 +103,7 @@ function SettingsStack(props) {
     <Stack.Navigator
       initialRouteName="Settings"
       mode="card"
-      headerMode="screen"
+      headerMode="none"
     >
       <Stack.Screen
         name="Settings"
@@ -139,25 +137,28 @@ function SettingsStack(props) {
           ),
         }}
       />
+      <Stack.Screen
+        name="Logout"
+        component={Logout}
+        options={{
+          header: ({ navigation, scene }) => (
+            <Header back title="Logout" scene={scene} navigation={navigation} />
+          ),
+        }}
+      />
     </Stack.Navigator>
   );
 }
 
 function HomeStack(props) {
   return (
-    <Stack.Navigator mode="card" headerMode="screen">
+    <Stack.Navigator mode="card" headerMode="none">
       <Stack.Screen
         name="Home"
         component={HomeScreen}
         options={{
           header: ({ navigation, scene }) => (
-            <Header
-              search
-              tabs
-              title="Home"
-              navigation={navigation}
-              scene={scene}
-            />
+            <Header title="Home" navigation={navigation} scene={scene} />
           ),
         }}
       />
@@ -166,14 +167,7 @@ function HomeStack(props) {
         component={Record}
         options={{
           header: ({ navigation, scene }) => (
-            <Header
-              back
-              search
-              tabs
-              title="Record"
-              navigation={navigation}
-              scene={scene}
-            />
+            <Header back title="Record" navigation={navigation} scene={scene} />
           ),
         }}
       />
@@ -209,80 +203,67 @@ function AppStack(props) {
   profile.name = props.userInfo.fullName;
   return (
     <UserContext.Provider value={props.userInfo}>
-      <Drawer.Navigator
-        style={{ flex: 1 }}
-        drawerContent={(props) => (
-          <CustomDrawerContent {...props} profile={profile} />
-        )}
-        drawerStyle={{
-          backgroundColor: "white",
-          width: width * 0.8,
-        }}
-        drawerContentOptions={{
-          activeTintColor: "white",
-          inactiveTintColor: "#000",
-          activeBackgroundColor: materialTheme.COLORS.ACTIVE,
-          inactiveBackgroundColor: "transparent",
-          itemStyle: {
-            width: width * 0.74,
-            paddingHorizontal: 12,
-            // paddingVertical: 4,
-            justifyContent: "center",
-            alignContent: "center",
-            // alignItems: 'center',
-            overflow: "hidden",
+      <Tab.Navigator
+        screenOptions={({ route }) => ({
+          tabBarIcon: ({ focused, color, size }) => {
+            let iconName;
+            let backgroundColor;
+
+            if (route.name === "Home") {
+              iconName = "ios-home-outline";
+              backgroundColor = focused ? "#1FACFB" : "#00000";
+            } else if (route.name === "Settings") {
+              iconName = "ios-settings-outline";
+              backgroundColor = focused ? "#1FACFB" : "#00000";
+            } else if (route.name === "Profile") {
+              iconName = "ios-person-outline";
+              backgroundColor = focused ? "#1FACFB" : "#00000";
+            }
+            return (
+              <Block style={{ marginBottom: 12 }}>
+                <Block style={styles.elipse_78}>
+                  <Block flex middle>
+                    <Block
+                      style={{
+                        backgroundColor: backgroundColor,
+                        borderRadius: 46 / 2,
+                        height: 46,
+                        width: 46,
+                      }}
+                    >
+                      <Block flex middle>
+                        <Icon
+                          size={24}
+                          name={iconName}
+                          family="ionicon"
+                          color={focused ? "white" : "gray"}
+                        />
+                      </Block>
+                    </Block>
+                  </Block>
+                </Block>
+              </Block>
+            );
           },
-          labelStyle: {
-            fontSize: 18,
-            fontWeight: "normal",
+        })}
+        tabBarOptions={{
+          activeTintColor: "#1FACFB",
+          inactiveTintColor: "gray",
+          style: {
+            // borderTopLeftRadius: 20,
+            shadowOffset: {
+              width: 0,
+              height: 1,
+            },
+            shadowOpacity: 0.15,
+            shadowColor: "#3E5163",
           },
         }}
-        initialRouteName="Home"
       >
-        <Drawer.Screen
-          name="Home"
-          component={HomeStack}
-          options={{
-            drawerIcon: ({ focused }) => (
-              <Icon
-                size={16}
-                name="home-outline"
-                family="ionicon"
-                color={focused ? "white" : materialTheme.COLORS.MUTED}
-              />
-            ),
-          }}
-        />
-        <Drawer.Screen
-          name="Profile"
-          component={ProfileStack}
-          options={{
-            drawerIcon: ({ focused }) => (
-              <Icon
-                size={16}
-                name="circle-10"
-                family="GalioExtra"
-                color={focused ? "white" : materialTheme.COLORS.MUTED}
-              />
-            ),
-          }}
-        />
-        <Drawer.Screen
-          name="Settings"
-          component={SettingsStack}
-          options={{
-            drawerIcon: ({ focused }) => (
-              <Icon
-                size={16}
-                name="gears"
-                family="font-awesome"
-                color={focused ? "white" : materialTheme.COLORS.MUTED}
-                style={{ marginRight: -3 }}
-              />
-            ),
-          }}
-        />
-        <Drawer.Screen
+        <Tab.Screen name="Home" component={HomeStack} />
+        <Tab.Screen name="Profile" component={ProfileStack} />
+        <Tab.Screen name="Settings" component={SettingsStack} />
+        {/* <Tab.Screen
           name="Logout"
           component={LogOutStack}
           options={{
@@ -295,8 +276,8 @@ function AppStack(props) {
               />
             ),
           }}
-        />
-      </Drawer.Navigator>
+        /> */}
+      </Tab.Navigator>
     </UserContext.Provider>
   );
 }
@@ -319,6 +300,12 @@ export default function OnboardingStack() {
             userInfo: action.user,
           };
         case "SIGN_OUT":
+          return {
+            ...prevState,
+            isSignout: true,
+            userToken: null,
+          };
+        case "RESET_PASSWORD":
           return {
             ...prevState,
             isSignout: true,
@@ -414,6 +401,23 @@ export default function OnboardingStack() {
             // alert(error);
           });
       },
+      resetPassword: async (data) => {
+        const email = data.email;
+        firebase
+          .auth()
+          .sendPasswordResetEmail(email)
+          .then(function () {
+            // Email sent.
+            dispatch({
+              type: "RESET_PASSWORD",
+            });
+            alert("Email sent! Please check your email to reset password");
+          })
+          .catch(function (error) {
+            // An error happened.
+            alert("Error occured, please try again later!");
+          });
+      },
     }),
     []
   );
@@ -427,6 +431,7 @@ export default function OnboardingStack() {
           <>
             <Stack.Screen name="Login" component={Login} />
             <Stack.Screen name="Registration" component={Registration} />
+            <Stack.Screen name="ResetPassword" component={ResetPassword} />
           </>
         ) : (
           <>
@@ -439,3 +444,17 @@ export default function OnboardingStack() {
     </AuthContext.Provider>
   );
 }
+const styles = StyleSheet.create({
+  elipse_78: {
+    backgroundColor: "white",
+    borderRadius: 54 / 2,
+    height: 54,
+    width: 54,
+  },
+  elipse_77: {
+    backgroundColor: "#1FACFB",
+    borderRadius: 46 / 2,
+    height: 46,
+    width: 46,
+  },
+});

@@ -1,6 +1,6 @@
 export default {
   COLORS: {
-    DEFAULT: '#DCDCDC',
+    DEFAULT: '#FFFFFF',
     PRIMARY: '#9C26B0',
     LABEL: '#FE2472',
     INFO: '#00BCD4',

@@ -1,39 +1,58 @@
+import { Block, Button, Icon, Text } from "galio-framework";
 import React from "react";
-import {
-  StyleSheet,
-  Switch,
-  FlatList,
-  Platform,
-  TouchableOpacity,
-  View,
-} from "react-native";
-import { Block, Text, theme, Icon } from "galio-framework";
+import { StyleSheet, Dimensions, ImageBackground } from "react-native";
+import { useNavigation } from "@react-navigation/native";
+const { width, height } = Dimensions.get("screen");
 
-import materialTheme from "../constants/Theme";
-
-export default class Settings extends React.Component {
-  render() {
-    return (
-      <View>
-        <Text>About meeeee!!!</Text>
-      </View>
-    );
-  }
+export default function Logout() {
+  const navigation = useNavigation();
+  return (
+    <Block flex center style={styles.home}>
+      <Block>
+        <ImageBackground
+          style={styles.headerImage}
+          source={require("../assets/images/blueHeader.png")}
+        >
+          <Block flex row>
+            <Block flex={1} style={{ marginTop: 35 }} middle>
+              <Icon
+                size={20}
+                name="arrow-back-outline"
+                family="ionicon"
+                color="white"
+                onPress={() => {
+                  navigation.goBack();
+                }}
+              />
+            </Block>
+            <Block flex={9} center style={{ marginTop: 35 }}>
+              <Text
+                size={16}
+                color={"#FFFFFF"}
+                bold
+                style={{ marginRight: 44 }}
+              >
+                About me
+              </Text>
+            </Block>
+          </Block>
+        </ImageBackground>
+      </Block>
+      <Block flex style={styles.options}>
+        <Block flex={1} middle>
+          <Text>About me!</Text>
+        </Block>
+      </Block>
+    </Block>
+  );
 }
-
 const styles = StyleSheet.create({
-  settings: {
-    paddingVertical: theme.SIZES.BASE / 3,
+  home: {
+    width: width,
+    backgroundColor: "#ffffff",
   },
-  title: {
-    paddingTop: theme.SIZES.BASE,
-    paddingBottom: theme.SIZES.BASE / 2,
-  },
-  rows: {
-    marginTop: theme.SIZES.BASE,
-    marginBottom: theme.SIZES.BASE / 2,
-    height: theme.SIZES.BASE * 2,
-    paddingHorizontal: theme.SIZES.BASE,
-    marginBottom: theme.SIZES.BASE / 2,
+  headerImage: {
+    width: width,
+    height: 95,
   },
 });

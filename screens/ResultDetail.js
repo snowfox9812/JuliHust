@@ -5,9 +5,9 @@ import {
   ScrollView,
   ImageBackground,
   Platform,
+  Image,
 } from "react-native";
 import { Block, Text, theme, Button } from "galio-framework";
-import { LinearGradient } from "expo-linear-gradient";
 import { Icon } from "../components";
 import { Images, materialTheme } from "../constants";
 import { HeaderHeight } from "../constants/utils";
@@ -15,6 +15,9 @@ import UserContext from "../controller/context";
 import { Audio } from "expo-av";
 import Highlighter from "react-native-highlight-words";
 import { firebase } from "../src/firebase/config";
+import { TouchableWithoutFeedback } from "react-native-gesture-handler";
+import ProgressCircle from "react-native-progress-circle";
+import { useNavigation } from "@react-navigation/native";
 var _ = require("lodash");
 
 const { width, height } = Dimensions.get("screen");
@@ -24,8 +27,9 @@ const db = firebase.firestore();
 export default function ResultDetail({ route }) {
   const { result } = route.params;
   const user = useContext(UserContext);
+  const navigation = useNavigation();
 
-  var defautInfo = {
+  var userInfo = {
     level: "Beginner",
     destination: "Hust, HaNoi",
     avatar: Images.Avatar,
@@ -60,67 +64,58 @@ export default function ResultDetail({ route }) {
     getSentence(result.lesson, result.unit);
   }, []);
   return (
-    <Block flex style={styles.profile}>
-      <Block flex>
-        <ImageBackground
-          source={{ uri: defautInfo.avatar }}
-          style={styles.profileContainer}
-          imageStyle={styles.profileImage}
-        >
-          <Block flex style={styles.profileDetails}>
-            <Block style={styles.profileTexts}>
-              <Text color="white" size={28} style={{ paddingBottom: 8 }}>
-                {user.fullName}
-              </Text>
-              <Block row space="between">
-                <Block row>
-                  <Text color="white" size={16} muted style={styles.seller}>
-                    {defautInfo.level}
-                  </Text>
-                </Block>
-                <Block>
-                  <Text color={theme.COLORS.MUTED} size={16}>
-                    <Icon
-                      name="map-marker"
-                      family="font-awesome"
-                      color={theme.COLORS.MUTED}
-                      size={16}
-                    />
-                    {defautInfo.destination}
-                  </Text>
-                </Block>
-              </Block>
-            </Block>
-            <LinearGradient
-              colors={["rgba(0,0,0,0)", "rgba(0,0,0,1)"]}
-              style={styles.gradient}
+    <Block key={user} flex style={styles.profile}>
+      <ImageBackground
+        style={styles.headerImage}
+        source={require("../assets/images/blueHeader.png")}
+      >
+        <Block flex row style={{ maxHeight: 85 }}>
+          <Block flex={1} stlye={{ marginLeft: 70, marginTop: 70 }} bottom>
+            <Icon
+              size={20}
+              name="arrow-back-outline"
+              family="ionicon"
+              color="white"
+              onPress={() => {
+                navigation.goBack();
+              }}
             />
           </Block>
-        </ImageBackground>
-      </Block>
+          <Block flex={9} center style={{ marginTop: 65 }}>
+            <Text size={16} color={"#FFFFFF"} bold style={{ marginRight: 44 }}>
+              {result.lesson}
+            </Text>
+          </Block>
+        </Block>
+      </ImageBackground>
       <Block flex style={styles.options}>
         <ScrollView showsVerticalScrollIndicator={false}>
-          <Block row flex style={{ padding: theme.SIZES.BASE }}>
+          <Block
+            row
+            flex
+            style={{ padding: theme.SIZES.BASE, marginBottom: 10 }}
+          >
             <Block flex={1} middle>
-              <Text bold size={12} style={{ marginBottom: 8 }}>
-                Lesson
-              </Text>
-              <Text muted size={12}>
-                {result.lesson}
-              </Text>
-            </Block>
-            <Block flex={1} middle>
-              <Text bold size={12} style={{ marginBottom: 8 }}>
+              <ProgressCircle
+                percent={result.accuracyInPercent}
+                radius={40}
+                borderWidth={5}
+                color="#1FACFB"
+                shadowColor="#D5E0EA"
+                bgColor="#fff"
+              >
+                <Text style={{ fontSize: 18 }}>
+                  {result.accuracyInPercent}%
+                </Text>
+              </ProgressCircle>
+              <Text muted size={15} style={{ marginTop: 10 }}>
                 Accuracy
-              </Text>
-              <Text muted size={12}>
-                {result.accuracyInPercent}%
               </Text>
             </Block>
           </Block>
           <Block flex style={{ paddingBottom: -HeaderHeight * 2 }}>
             <Block flex center>
-              <Block>
+              <Block style={{ marginBottom: 20 }}>
                 <Highlighter
                   style={{ fontSize: 24 }}
                   highlightStyle={{ color: "red" }}
@@ -132,10 +127,11 @@ export default function ResultDetail({ route }) {
               <Block>
                 <Button
                   onlyIcon
+                  shadowless
                   icon="play-outline"
                   iconFamily="ionicon"
                   iconSize={14}
-                  color="primary"
+                  color="#1FACFB"
                   iconColor="white"
                   onPress={() => {
                     downloadAudio(result.userId, result.lesson, result.created);
@@ -151,74 +147,11 @@ export default function ResultDetail({ route }) {
 }
 
 const styles = StyleSheet.create({
-  profile: {
-    marginTop: Platform.OS === "android" ? -HeaderHeight : 0,
-    marginBottom: -HeaderHeight * 2,
-  },
-  profileImage: {
-    width: width * 1.1,
-    height: "auto",
-  },
-  profileContainer: {
+  headerImage: {
     width: width,
-    height: height / 2,
+    height: 95,
   },
-  profileDetails: {
-    paddingTop: theme.SIZES.BASE * 4,
-    justifyContent: "flex-end",
-    position: "relative",
-  },
-  profileTexts: {
-    paddingHorizontal: theme.SIZES.BASE * 2,
-    paddingVertical: theme.SIZES.BASE * 2,
-    zIndex: 2,
-  },
-  pro: {
-    backgroundColor: materialTheme.COLORS.LABEL,
-    paddingHorizontal: 6,
-    marginRight: theme.SIZES.BASE / 2,
-    borderRadius: 4,
-    height: 19,
-    width: 38,
-  },
-  seller: {
-    marginRight: theme.SIZES.BASE / 2,
-  },
-  options: {
-    position: "relative",
-    padding: theme.SIZES.BASE,
-    marginHorizontal: theme.SIZES.BASE,
-    marginTop: -theme.SIZES.BASE * 7,
-    borderTopLeftRadius: 13,
-    borderTopRightRadius: 13,
-    backgroundColor: theme.COLORS.WHITE,
-    shadowColor: "black",
-    shadowOffset: { width: 0, height: 0 },
-    shadowRadius: 8,
-    shadowOpacity: 0.2,
-    zIndex: 2,
-  },
-  thumb: {
-    borderRadius: 4,
-    marginVertical: 4,
-    alignSelf: "center",
-    width: thumbMeasure,
-    height: thumbMeasure,
-  },
-  gradient: {
-    zIndex: 1,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    height: "30%",
-    position: "absolute",
-  },
-  dataTable: {
-    marginBottom: theme.SIZES.BASE * 2,
-  },
-  headerTable: {
-    borderBottomWidth: 1,
-    marginBottom: theme.SIZES.BASE * 2,
-    paddingBottom: theme.SIZES.BASE * 1,
+  profile: {
+    backgroundColor: "#ffffff",
   },
 });

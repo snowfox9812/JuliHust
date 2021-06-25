@@ -3,23 +3,29 @@
  */
 
 import React from "react";
-import { Dimensions, StyleSheet, Alert, ActivityIndicator } from "react-native";
+import {
+  Dimensions,
+  StyleSheet,
+  Alert,
+  ActivityIndicator,
+  ImageBackground,
+  Image,
+} from "react-native";
 import { registerRootComponent } from "expo";
 import { Audio } from "expo-av";
-import * as Font from "expo-font";
 import * as Permissions from "expo-permissions";
 import * as Linking from "expo-linking";
 import * as FileSystem from "expo-file-system";
-import { Block, Text, theme, Button } from "galio-framework";
-import { HeaderHeight } from "../constants/utils";
-const { width, height } = Dimensions.get("screen");
+import { Block, Text, Button, Icon } from "galio-framework";
 import Swiper from "react-native-swiper";
 import patienceDiff from "../controller/patienceDiff";
 import Highlighter from "react-native-highlight-words";
-
-import { firebase } from "../src/firebase/config";
-const db = firebase.firestore();
 import UserContext from "../controller/context";
+import { firebase } from "../src/firebase/config";
+import { TouchableWithoutFeedback } from "react-native-gesture-handler";
+
+const db = firebase.firestore();
+const { width, height } = Dimensions.get("screen");
 
 export default class Record extends React.Component {
   constructor(props) {
@@ -47,6 +53,7 @@ export default class Record extends React.Component {
       isReceivedResult: false,
       receivedResultData: {},
       isProcessing: false,
+      isDone: false,
     };
     this.recordingSettings = JSON.parse(
       JSON.stringify({
@@ -69,9 +76,6 @@ export default class Record extends React.Component {
 
   componentDidMount() {
     (async () => {
-      await Font.loadAsync({
-        "cutive-mono-regular": require("../assets/fonts/CutiveMono-Regular.ttf"),
-      });
       this.setState({ fontLoaded: true });
     })();
     this._askForPermissions();
@@ -286,7 +290,7 @@ export default class Record extends React.Component {
     // Get audio file's info
     const info = await FileSystem.getInfoAsync(this.recording.getURI());
     let uri = info.uri;
-    let apiUrl = "http://192.168.0.158:1234/upload";
+    let apiUrl = "http://192.168.31.20:1234/upload";
 
     let timeStamp = Date.parse(new Date());
     let fileName = userInfo.id + "_" + timeStamp + "_" + lesson + ".wav";
@@ -361,7 +365,7 @@ export default class Record extends React.Component {
                     100;
                 }
                 data.result.accuracyInPercent =
-                  Math.round(data.result.accuracyInPercent * 1000) / 1000;
+                  Math.round(data.result.accuracyInPercent * 100) / 100;
                 // Show missspell word
                 data.result.missSpell = [];
                 var checkMissSpell = patienceDiff.patienceDiff(
@@ -378,6 +382,7 @@ export default class Record extends React.Component {
                 this.setState({
                   isReceivedResult: true,
                   receivedResultData: data,
+                  isDone: true,
                 });
 
                 // Add more result info to send to Firestore
@@ -407,194 +412,316 @@ export default class Record extends React.Component {
     }
   }
 
+  _onPressTryAgain() {
+    this.setState({ isRecordingComplete: false });
+  }
+  refreshResult() {
+    this.setState({ isReceivedResult: false, isRecordingComplete: false });
+  }
+
   deckSwiperRender = (unit, lesson, sentence, phnome) => {
-    return (
-      <Block flex>
-        <Block flex={2}>
-          <Block
-            row
-            space="between"
-            style={{ paddingVertical: theme.SIZES.BASE }}
-          >
-            <Block left>
-              <Text bold size={36} style={{ marginBottom: 8 }}>
-                Lesson {unit}
-              </Text>
+    if (this.state.isProcessing) {
+      return (
+        <Block flex middle>
+          <Block flex={1} middle>
+            <ActivityIndicator size="large" color="#1FACFB" />
+            <Text>Loading...</Text>
+          </Block>
+        </Block>
+      );
+    } else {
+      return (
+        <Block flex style={{ marginHorizontal: 12, maxHeight: 650 }}>
+          <Block flex={3}>
+            <Block left style={{ marginTop: 37 }}>
               <Text muted size={18}>
                 {lesson}:
               </Text>
             </Block>
-          </Block>
-          <Block
-            row
-            space="between"
-            center
-            style={{ paddingBottom: 16, alignItems: "baseline" }}
-          >
-            {/* <Text size={24}>{sentence}</Text> */}
-            {console.log(this.state.receivedResultData)}
-            {this.state.receivedResultData.result ? (
-              <Highlighter
-                style={{ fontSize: 24 }}
-                highlightStyle={{ color: "red" }}
-                searchWords={
-                  !this.state.receivedResultData
-                    ? []
-                    : this.state.receivedResultData.result.missSpell
-                }
-                autoEscape={true}
-                textToHighlight={sentence ? sentence : ""}
-              />
-            ) : (
-              <Text size={24}>{sentence}</Text>
-            )}
-          </Block>
-        </Block>
-        <Block flex={4}>
-          <Block flex>
-            <Block flex={1}>
-              <Block flex row>
-                <Block flex={1} middle>
-                  <Block>
-                    {!this.state.isPlaying ? (
-                      <Button
-                        onlyIcon
-                        icon="play-outline"
-                        iconFamily="ionicon"
-                        iconSize={14}
-                        color="primary"
-                        iconColor="white"
-                        onPress={() => {
-                          this._onPlayPausePressed();
-                        }}
-                        disabled={
-                          !this.state.isPlaybackAllowed || this.state.isLoading
-                        }
-                      />
-                    ) : (
-                      <Button
-                        onlyIcon
-                        icon="pause-outline"
-                        iconFamily="ionicon"
-                        iconSize={14}
-                        color="primary"
-                        iconColor="white"
-                        onPress={() => {
-                          this._onPlayPausePressed();
-                        }}
-                        disabled={
-                          !this.state.isPlaybackAllowed || this.state.isLoading
-                        }
-                      />
-                    )}
-                  </Block>
-                </Block>
-                <Block flex={1} middle>
-                  {!this.state.muted ? (
-                    <Button
-                      onlyIcon
-                      icon="volume-high-outline"
-                      iconFamily="ionicon"
-                      iconSize={14}
-                      color="primary"
-                      iconColor="white"
-                      onPress={this._onMutePressed}
-                      disabled={
-                        !this.state.isPlaybackAllowed || this.state.isLoading
-                      }
-                    />
-                  ) : (
-                    <Button
-                      onlyIcon
-                      icon="volume-mute-outline"
-                      iconFamily="ionicon"
-                      iconSize={14}
-                      color="primary"
-                      iconColor="white"
-                      onPress={this._onMutePressed}
-                      disabled={
-                        !this.state.isPlaybackAllowed || this.state.isLoading
-                      }
-                    />
-                  )}
-                </Block>
-                <Block flex={1} middle>
-                  <Button
-                    onlyIcon
-                    icon="stop-outline"
-                    iconFamily="ionicon"
-                    iconSize={14}
-                    color="primary"
-                    iconColor="white"
-                    onPress={this._onStopPressed}
-                    disabled={
-                      !this.state.isPlaybackAllowed || this.state.isLoading
-                    }
-                  />
-                </Block>
-                <Block flex={2} middle>
-                  <Text>{this._getPlaybackTimestamp()}</Text>
-                </Block>
-              </Block>
-            </Block>
-            <Block flex={5}>
-              {this.state.isReceivedResult && this.state.receivedResultData && (
-                <Block flex middle>
-                  <Block>
-                    <Text bold size={24}>
-                      Accuracy :
-                      {this.state.receivedResultData.result.accuracyInPercent}%
-                    </Text>
-                  </Block>
-                </Block>
+            <Block center style={{ marginTop: 12 }}>
+              {this.state.receivedResultData.result &&
+              this.state.isReceivedResult ? (
+                <Highlighter
+                  style={{ fontSize: 28 }}
+                  highlightStyle={{ color: "red" }}
+                  searchWords={
+                    !this.state.receivedResultData
+                      ? []
+                      : this.state.receivedResultData.result.missSpell
+                  }
+                  autoEscape={true}
+                  textToHighlight={sentence ? sentence : ""}
+                />
+              ) : (
+                <Text size={28}>{sentence}</Text>
               )}
             </Block>
           </Block>
-        </Block>
-        <Block flex={2}>
-          <Block flex middle>
-            <Block flex={1}>
-              {this.state.isRecording ? (
-                <Text>Recording... {this._getRecordingTimestamp()}</Text>
-              ) : (
+          <Block flex={4}>
+            <Block flex>
+              {this.state.isReceivedResult &&
+                this.state.receivedResultData &&
                 this.state.isRecordingComplete && (
-                  <Block>
+                  <Block
+                    flex
+                    middle
+                    style={styles.accuracy}
+                    style={
+                      this.state.receivedResultData.result.accuracyInPercent <
+                      65
+                        ? { backgroundColor: "#F3F7FA" }
+                        : { backgroundColor: "#DDF3FF" }
+                    }
+                  >
+                    <Block flex={1} middle>
+                      <Text size={28} bold color={"#1FACFB"}>
+                        Accuracy
+                      </Text>
+                    </Block>
+                    <Block flex={2}>
+                      <Block row style={{ width: width }}>
+                        <Block flex={3} middle right>
+                          <Image
+                            style={styles.reactionImage}
+                            source={
+                              this.state.receivedResultData.result
+                                .accuracyInPercent < 65
+                                ? require("../assets/images/reaction/sad.png")
+                                : require("../assets/images/reaction/smile.png")
+                            }
+                          />
+                        </Block>
+                        <Block flex={5} middle left>
+                          <Text size={40}>
+                            {
+                              this.state.receivedResultData.result
+                                .accuracyInPercent
+                            }
+                            %
+                          </Text>
+                        </Block>
+                      </Block>
+                      <Block flex={1} center>
+                        {this.state.receivedResultData.result
+                          .accuracyInPercent < 65 ? (
+                          <Text size={20} color={"#747474"}>
+                            Practice makes perfect
+                          </Text>
+                        ) : (
+                          <Text size={20} color={"#747474"}>
+                            You speak like a native
+                          </Text>
+                        )}
+                      </Block>
+                    </Block>
+                  </Block>
+                )}
+            </Block>
+          </Block>
+          <Block flex={3}>
+            <Block flex>
+              <Block flex={1}>
+                {this.state.isRecording ? (
+                  <Block center>
+                    <Text size={15} muted>
+                      Recording... {this._getRecordingTimestamp()}
+                    </Text>
+                  </Block>
+                ) : (
+                  !this.state.isRecordingComplete && (
+                    <Block center>
+                      <Text size={15} muted>
+                        Start recording
+                      </Text>
+                    </Block>
+                  )
+                )}
+              </Block>
+              <Block flex={4}>
+                {!this.state.isRecordingComplete ? (
+                  <Block middle>
+                    <TouchableWithoutFeedback
+                      onPress={this._onRecordPressed}
+                      disabled={this.state.isLoading}
+                    >
+                      <Image
+                        style={styles.recordImage}
+                        source={
+                          this.state.isRecording
+                            ? require("../assets/images/figma/Recording.png")
+                            : require("../assets/images/figma/Record.png")
+                        }
+                      />
+                    </TouchableWithoutFeedback>
+                  </Block>
+                ) : (
+                  <Block flex row>
+                    <Block flex={1} middle>
+                      <Block>
+                        {!this.state.isPlaying ? (
+                          <Button
+                            onlyIcon
+                            shadowless
+                            icon="play-outline"
+                            iconFamily="ionicon"
+                            iconSize={14}
+                            color="#1FACFB"
+                            iconColor="white"
+                            onPress={() => {
+                              this._onPlayPausePressed();
+                            }}
+                            disabled={
+                              !this.state.isPlaybackAllowed ||
+                              this.state.isLoading
+                            }
+                          />
+                        ) : (
+                          <Button
+                            onlyIcon
+                            shadowless
+                            icon="pause-outline"
+                            iconFamily="ionicon"
+                            iconSize={14}
+                            color="#1FACFB"
+                            iconColor="white"
+                            onPress={() => {
+                              this._onPlayPausePressed();
+                            }}
+                            disabled={
+                              !this.state.isPlaybackAllowed ||
+                              this.state.isLoading
+                            }
+                          />
+                        )}
+                      </Block>
+                    </Block>
+                    <Block flex={1} middle>
+                      {!this.state.muted ? (
+                        <Button
+                          onlyIcon
+                          shadowless
+                          icon="volume-high-outline"
+                          iconFamily="ionicon"
+                          iconSize={14}
+                          color="#1FACFB"
+                          iconColor="white"
+                          onPress={this._onMutePressed}
+                          disabled={
+                            !this.state.isPlaybackAllowed ||
+                            this.state.isLoading
+                          }
+                        />
+                      ) : (
+                        <Button
+                          onlyIcon
+                          shadowless
+                          icon="volume-mute-outline"
+                          iconFamily="ionicon"
+                          iconSize={14}
+                          color="#1FACFB"
+                          iconColor="white"
+                          onPress={this._onMutePressed}
+                          disabled={
+                            !this.state.isPlaybackAllowed ||
+                            this.state.isLoading
+                          }
+                        />
+                      )}
+                    </Block>
+                    <Block flex={1} middle>
+                      <Button
+                        onlyIcon
+                        shadowless
+                        icon="stop-outline"
+                        iconFamily="ionicon"
+                        iconSize={14}
+                        color="#1FACFB"
+                        iconColor="white"
+                        onPress={this._onStopPressed}
+                        disabled={
+                          !this.state.isPlaybackAllowed || this.state.isLoading
+                        }
+                      />
+                    </Block>
+                    <Block flex={2} middle>
+                      <Text size={15} muted>
+                        {this._getPlaybackTimestamp()}
+                      </Text>
+                    </Block>
+                  </Block>
+                )}
+              </Block>
+              <Block flex={1} style={{ marginTop: 20 }}>
+                {this.state.isRecordingComplete && (
+                  <Block flex row center>
+                    {!this.state.isDone && (
+                      <Button
+                        round
+                        shadowless
+                        size="small"
+                        color={"#1FACFB"}
+                        disabled={
+                          this.state.isLoading && this.state.isRecordingComplete
+                        }
+                        onPress={() => {
+                          this._onUploadPressed(sentence, phnome, lesson, unit);
+                        }}
+                      >
+                        <Block flex row>
+                          <Block flex={1} middle right>
+                            <Icon
+                              size={24}
+                              name="checkmark-done-outline"
+                              family="ionicon"
+                              color={"#ffffff"}
+                            />
+                          </Block>
+                          <Block flex={2} middle left>
+                            <Text size={15} color={"#ffffff"}>
+                              {" "}
+                              Submit
+                            </Text>
+                          </Block>
+                        </Block>
+                      </Button>
+                    )}
                     <Button
-                      capitalize
+                      round
+                      shadowless
                       size="small"
+                      color={"#1FACFB"}
                       disabled={
                         this.state.isLoading && this.state.isRecordingComplete
                       }
                       onPress={() => {
-                        this._onUploadPressed(sentence, phnome, lesson, unit);
+                        this._onPressTryAgain();
                       }}
                     >
-                      Submit
+                      <Block flex row>
+                        <Block flex={1} middle right>
+                          <Icon
+                            size={24}
+                            name="ios-reload-outline"
+                            family="ionicon"
+                            color={"#ffffff"}
+                          />
+                        </Block>
+                        <Block flex={2} middle left>
+                          <Text size={15} color={"#ffffff"}>
+                            {" "}
+                            Try again
+                          </Text>
+                        </Block>
+                      </Block>
                     </Button>
                   </Block>
-                )
-              )}
-            </Block>
-            <Block flex={2}>
-              <Button
-                onlyIcon
-                icon={
-                  this.state.isRecording
-                    ? "dots-three-horizontal"
-                    : "mic-outline"
-                }
-                iconFamily={this.state.isRecording ? "Entypo" : "ionicon"}
-                iconSize={35}
-                color="primary"
-                iconColor="white"
-                onPress={this._onRecordPressed}
-                disabled={this.state.isLoading}
-              />
+                )}
+              </Block>
             </Block>
           </Block>
         </Block>
-      </Block>
-    );
+      );
+    }
   };
 
   renderRecordScreen = () => {
@@ -613,7 +740,17 @@ export default class Record extends React.Component {
       );
     }
     return (
-      <Swiper loop={false} showsPagination={false} showsButtons={false}>
+      <Swiper
+        loop={false}
+        showsPagination={false}
+        showsButtons={false}
+        width={width}
+        height={height}
+        onIndexChanged={() => {
+          this.refreshResult();
+        }}
+        scrollEnabled={!this.state.isProcessing}
+      >
         {lessonRender}
       </Swiper>
     );
@@ -624,51 +761,74 @@ export default class Record extends React.Component {
       <Block />
     ) : !this.state.haveRecordingPermissions ? (
       <Block>
-        <Text>
+        {/* <Text>
           You must enable audio recording permissions in order to use this app.
-        </Text>
+        </Text> */}
       </Block>
     ) : (
-      <Block flex style={(styles.record, styles.options)}>
-        {this.state.isProcessing ? (
-          <Block flex>
-            <Block flex={1} middle>
-              <ActivityIndicator size="large" color="#6C24AA" />
-              <Text>Loading...</Text>
+      <Block flex>
+        <Block>
+          <ImageBackground
+            style={styles.headerImage}
+            source={require("../assets/images/blueHeader.png")}
+          >
+            <Block flex row style={{ marginTop: 50 }}>
+              <Block flex={1} stlye={{ marginLeft: 70 }} middle>
+                <Icon
+                  size={20}
+                  name="arrow-back-outline"
+                  family="ionicon"
+                  color="white"
+                  onPress={() => {
+                    this.props.navigation.goBack();
+                  }}
+                />
+              </Block>
+              <Block flex={9} center>
+                <Text
+                  size={16}
+                  color={"#FFFFFF"}
+                  bold
+                  style={{ marginRight: 44 }}
+                >
+                  Lesson{" "}
+                  {this.props.route.params.product.content[0]
+                    ? this.props.route.params.product.content[0].lession
+                    : ""}
+                </Text>
+              </Block>
             </Block>
-          </Block>
-        ) : (
-          this.renderRecordScreen()
-        )}
+          </ImageBackground>
+        </Block>
+        <Block flex style={(styles.record, styles.options)}>
+          {this.renderRecordScreen()}
+        </Block>
       </Block>
     );
   }
 }
 
 const styles = StyleSheet.create({
-  record: {
-    marginTop: Platform.OS === "android" ? -HeaderHeight : 0,
-    marginBottom: -HeaderHeight * 2,
-    width: width,
-  },
+  record: {},
   options: {
-    position: "relative",
-    padding: theme.SIZES.BASE,
-    marginHorizontal: theme.SIZES.BASE,
-    marginTop: theme.SIZES.BASE * 2,
-    marginBottom: theme.SIZES.BASE,
-    borderTopLeftRadius: 13,
-    borderTopRightRadius: 13,
-    backgroundColor: theme.COLORS.WHITE,
-    shadowColor: "black",
-    shadowOffset: { width: 0, height: 0 },
-    shadowRadius: 8,
-    shadowOpacity: 0.2,
-    zIndex: 2,
-    borderBottomLeftRadius: 13,
-    borderBottomRightRadius: 13,
-    width: width - theme.SIZES.BASE * 2,
-    maxHeight: height - 140,
+    backgroundColor: "#ffffff",
+  },
+  headerImage: {
+    width: width,
+    height: 95,
+  },
+  recordImage: {
+    height: 130,
+    width: 130,
+  },
+  accuracy: {
+    height: 138,
+    width: 227,
+    borderRadius: 4,
+  },
+  reactionImage: {
+    height: 80,
+    width: 80,
   },
 });
 

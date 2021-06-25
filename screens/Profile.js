@@ -4,16 +4,16 @@ import {
   Dimensions,
   ScrollView,
   ImageBackground,
-  Platform,
+  Image,
 } from "react-native";
 import { Block, Text, theme, Button } from "galio-framework";
-import { LinearGradient } from "expo-linear-gradient";
 import { Icon } from "../components";
 import { Images } from "../constants";
 import { HeaderHeight } from "../constants/utils";
 import UserContext from "../controller/context";
 import { firebase } from "../src/firebase/config";
 import { TouchableWithoutFeedback } from "react-native-gesture-handler";
+import ProgressCircle from "react-native-progress-circle";
 var _ = require("lodash");
 
 const db = firebase.firestore();
@@ -34,7 +34,7 @@ export default class Profile extends React.Component {
   componentDidMount() {
     let user = this.context;
     this.getResultData(user.id);
-    this.getAvatarUrl(user.avatarFileName)
+    this.getAvatarUrl(user.avatarFileName);
   }
 
   async getResultData(userId) {
@@ -72,13 +72,19 @@ export default class Profile extends React.Component {
     historyContent.push(
       <Block flex row style={styles.headerTable} key={"header-table"}>
         <Block flex={1} center>
-          <Text>Unit</Text>
+          <Text size={15} bold>
+            Lesson
+          </Text>
         </Block>
         <Block flex={1} center>
-          <Text>Lesson</Text>
+          <Text size={15} bold>
+            Sentence
+          </Text>
         </Block>
         <Block flex={1} center>
-          <Text>Accuracy</Text>
+          <Text size={15} bold>
+            Accuracy
+          </Text>
         </Block>
       </Block>
     );
@@ -93,13 +99,15 @@ export default class Profile extends React.Component {
         >
           <Block flex row style={({ flexWrap: "wrap" }, styles.dataTable)}>
             <Block flex={1} center>
-              <Text>{result.unit}</Text>
+              <Text muted>{result.unit}</Text>
             </Block>
             <Block flex={1} center>
-              <Text>{result.lesson}</Text>
+              <Text muted>{result.lesson}</Text>
             </Block>
             <Block flex={1} center>
-              <Text>{result.accuracyInPercent}%</Text>
+              <Text size={15} color={"#1FACFB"}>
+                {result.accuracyInPercent}%
+              </Text>
             </Block>
           </Block>
         </TouchableWithoutFeedback>
@@ -114,89 +122,122 @@ export default class Profile extends React.Component {
       .getDownloadURL()
       .then((result) => {
         console.log(result);
-        this.setState({imageUrl: result})
+        this.setState({ imageUrl: result });
       });
   }
 
   render() {
     let user = this.context;
-    // console.log(user.avatarFileName);
-    // let avtUrl = this.getAvatarUrl(user.avatarFileName);
-    // console.log(avtUrl);
-    // if (user.avatarFileName) {
-    //   avtUrl = this.getAvatarUrl(user.avatarFileName);
-    // }
     var userInfo = {
-      level: "Beginner",
       location: user.location ? user.location : "Hust, HaNoi",
       avatar: this.state.imageUrl ? this.state.imageUrl : Images.Avatar,
     };
     const { navigation } = this.props;
     return (
       <Block key={user} flex style={styles.profile}>
-        <Block flex>
-          <ImageBackground
-            source={{ uri: userInfo.avatar }}
-            style={styles.profileContainer}
-            imageStyle={styles.profileImage}
-          >
-            <Block flex style={styles.profileDetails}>
-              <Block style={styles.profileTexts}>
-                <Text color="white" size={28} style={{ paddingBottom: 8 }}>
+        <ImageBackground
+          style={styles.headerImage}
+          source={require("../assets/images/blueHeader.png")}
+        >
+          <Block flex row style={{ maxHeight: 85 }}>
+            {/* <Block flex={1} stlye={{ marginLeft: 70, marginTop: 70 }} bottom>
+              <Icon
+                size={20}
+                name="arrow-back-outline"
+                family="ionicon"
+                color="white"
+                onPress={() => {
+                  this.props.navigation.goBack();
+                }}
+              />
+            </Block> */}
+            <Block flex={9} center style={{ marginTop: 65 }}>
+              <Text
+                size={16}
+                color={"#FFFFFF"}
+                bold
+              >
+                My profile
+              </Text>
+            </Block>
+          </Block>
+          <Block flex row style={{ marginTop: 10 }}>
+            <Block flex={1} style={{ marginLeft: 20 }}>
+              <Image style={styles.avatar} source={{ uri: userInfo.avatar }} />
+            </Block>
+            <Block flex={4}>
+              <Block flex={1}>
+                <Text size={16} color={"#ffffff"} bold>
                   {user.fullName}
                 </Text>
-                <Block row space="between">
-                  <Block row>
-                    <Text color="white" size={16} muted style={styles.seller}>
-                      {userInfo.level}
-                    </Text>
-                  </Block>
-                  <Block>
-                    <Text color={theme.COLORS.MUTED} size={16}>
+              </Block>
+              <Block flex={2} row style={{ marginRight: 20 }}>
+                <Block flex={1} left>
+                  <TouchableWithoutFeedback
+                    onPress={() => {
+                      this.props.navigation.navigate("UpdateProfile");
+                    }}
+                  >
+                    <Text size={15} color={"#E3F1F9"}>
+                      Update profile
                       <Icon
-                        name="map-marker"
-                        family="font-awesome"
-                        color={theme.COLORS.MUTED}
-                        size={16}
+                        size={15}
+                        name="ios-pencil-outline"
+                        family="ionicon"
+                        color="#E3F1F9"
+                        style={{ marginLeft: 10 }}
                       />
-                      {userInfo.location}
                     </Text>
-                  </Block>
+                  </TouchableWithoutFeedback>
+                </Block>
+                <Block flex={1} right>
+                  <Text color={"#E3F1F9"} size={15}>
+                    <Icon
+                      name="map-marker"
+                      family="font-awesome"
+                      color={"#E3F1F9"}
+                      size={15}
+                    />
+                    {userInfo.location}
+                  </Text>
                 </Block>
               </Block>
-              <LinearGradient
-                colors={["rgba(0,0,0,0)", "rgba(0,0,0,1)"]}
-                style={styles.gradient}
-              />
             </Block>
-          </ImageBackground>
-        </Block>
+          </Block>
+        </ImageBackground>
         <Block flex style={styles.options}>
           <ScrollView showsVerticalScrollIndicator={false}>
-            <Block row flex style={{ padding: theme.SIZES.BASE }}>
+            <Block row flex style={{ padding: theme.SIZES.BASE, marginBottom: 10 }}>
               <Block flex={1} middle>
-                <Text bold size={12} style={{ marginBottom: 8 }}>
-                  {_.size(this.state.learnedLesson)}
-                </Text>
-                <Text muted size={12}>
+                <ProgressCircle
+                  percent={_.size(this.state.learnedLesson)*2}
+                  radius={40}
+                  borderWidth={5}
+                  color="#1FACFB"
+                  shadowColor="#D5E0EA"
+                  bgColor="#fff"
+                >
+                  <Text style={{ fontSize: 18 }}>{_.size(this.state.learnedLesson)}</Text>
+                </ProgressCircle>
+                <Text muted size={15} style={{marginTop: 10}}>
                   Lesson learned
                 </Text>
               </Block>
               <Block flex={1} middle>
-                <Text bold size={12} style={{ marginBottom: 8 }}>
-                  {this.state.goodResult}%
-                </Text>
-                <Text muted size={12}>
+                <ProgressCircle
+                  percent={this.state.goodResult}
+                  radius={40}
+                  borderWidth={5}
+                  color="#1FACFB"
+                  shadowColor="#D5E0EA"
+                  bgColor="#fff"
+                >
+                  <Text style={{ fontSize: 18 }}>{this.state.goodResult}%</Text>
+                </ProgressCircle>
+                <Text muted size={15} style={{marginTop: 10}}>
                   Good result
                 </Text>
               </Block>
-            </Block>
-            <Block
-              row
-              space="between"
-              style={{ paddingVertical: 16, alignItems: "baseline" }}
-            >
-              <Text size={16}>Recently learned</Text>
             </Block>
             <Block style={{ paddingBottom: -HeaderHeight * 2 }}>
               <Block flex row space="between">
@@ -212,55 +253,10 @@ export default class Profile extends React.Component {
 
 const styles = StyleSheet.create({
   profile: {
-    marginTop: Platform.OS === "android" ? -HeaderHeight : 0,
-    marginBottom: -HeaderHeight * 2,
-  },
-  profileImage: {
-    width: width * 1.1,
-    height: "auto",
-  },
-  profileContainer: {
-    width: width,
-    height: height / 2,
-  },
-  profileDetails: {
-    paddingTop: theme.SIZES.BASE * 4,
-    justifyContent: "flex-end",
-    position: "relative",
-  },
-  profileTexts: {
-    paddingHorizontal: theme.SIZES.BASE * 2,
-    paddingVertical: theme.SIZES.BASE * 2,
-    zIndex: 2,
+    backgroundColor: "#ffffff",
   },
   options: {
-    position: "relative",
-    padding: theme.SIZES.BASE,
-    marginHorizontal: theme.SIZES.BASE,
-    marginTop: -theme.SIZES.BASE * 7,
-    borderTopLeftRadius: 13,
-    borderTopRightRadius: 13,
-    backgroundColor: theme.COLORS.WHITE,
-    shadowColor: "black",
-    shadowOffset: { width: 0, height: 0 },
-    shadowRadius: 8,
-    shadowOpacity: 0.2,
-    zIndex: 2,
-  },
-  thumb: {
-    borderRadius: 4,
-    marginVertical: 4,
-    alignSelf: "center",
-    width: thumbMeasure,
-    height: thumbMeasure,
-  },
-  gradient: {
-    zIndex: 1,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    height: "30%",
-    position: "absolute",
+    marginHorizontal: 20,
   },
   dataTable: {
     marginBottom: theme.SIZES.BASE * 2,
@@ -269,5 +265,14 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     marginBottom: theme.SIZES.BASE * 2,
     paddingBottom: theme.SIZES.BASE * 1,
+  },
+  headerImage: {
+    width: width,
+    height: 180,
+  },
+  avatar: {
+    height: 60,
+    width: 60,
+    borderRadius: 60 / 2,
   },
 });

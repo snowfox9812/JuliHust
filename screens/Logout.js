@@ -1,17 +1,50 @@
-import { Block, Button, theme } from "galio-framework";
+import { Block, Button, Icon, Text } from "galio-framework";
 import React from "react";
-import { Alert, StyleSheet, Dimensions } from "react-native";
+import { StyleSheet, Dimensions, ImageBackground } from "react-native";
 import AuthContext from "../controller/authContext";
-import { HeaderHeight } from "../constants/utils";
+import { useNavigation } from "@react-navigation/native";
 const { width, height } = Dimensions.get("screen");
 
 export default function Logout() {
   const { signOut } = React.useContext(AuthContext);
+  const navigation = useNavigation();
   return (
     <Block flex center style={styles.home}>
-      <Block flex style={(styles.record, styles.options)}>
+      <Block>
+        <ImageBackground
+          style={styles.headerImage}
+          source={require("../assets/images/blueHeader.png")}
+        >
+          <Block flex row>
+            <Block flex={1} style={{ marginTop: 35 }} middle>
+              <Icon
+                size={20}
+                name="arrow-back-outline"
+                family="ionicon"
+                color="white"
+                onPress={() => {
+                  navigation.goBack();
+                }}
+              />
+            </Block>
+            <Block flex={9} center style={{ marginTop: 35 }}>
+              <Text
+                size={16}
+                color={"#FFFFFF"}
+                bold
+                style={{ marginRight: 44 }}
+              >
+                Logout
+              </Text>
+            </Block>
+          </Block>
+        </ImageBackground>
+      </Block>
+      <Block flex style={styles.options}>
         <Block flex={1} middle>
-          <Button color="#6C24AA" onPress={signOut}>Sign out</Button>
+          <Button color="#1FACFB" round shadowless onPress={signOut}>
+            Sign out
+          </Button>
         </Block>
       </Block>
     </Block>
@@ -20,29 +53,10 @@ export default function Logout() {
 const styles = StyleSheet.create({
   home: {
     width: width,
+    backgroundColor: "#ffffff",
   },
-  record: {
-    marginTop: Platform.OS === "android" ? -HeaderHeight : 0,
-    marginBottom: -HeaderHeight * 2,
+  headerImage: {
     width: width,
-  },
-  options: {
-    position: "relative",
-    padding: theme.SIZES.BASE,
-    marginHorizontal: theme.SIZES.BASE,
-    marginTop: theme.SIZES.BASE * 2,
-    marginBottom: theme.SIZES.BASE,
-    borderTopLeftRadius: 13,
-    borderTopRightRadius: 13,
-    backgroundColor: theme.COLORS.WHITE,
-    shadowColor: "black",
-    shadowOffset: { width: 0, height: 0 },
-    shadowRadius: 8,
-    shadowOpacity: 0.2,
-    zIndex: 2,
-    borderBottomLeftRadius: 13,
-    borderBottomRightRadius: 13,
-    width: width - theme.SIZES.BASE * 2,
-    maxHeight: height - 140,
+    height: 95,
   },
 });
